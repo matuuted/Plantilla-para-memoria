@@ -1,0 +1,19 @@
+# Archivos temporales de LaTeX
+*.aux
+*.log
+*.lof
+*.lot
+*.toc
+*.out
+*.synctex.gz
+*.run.xml
+*bib
+
+# PDFs generados
+*.pdf
+
+# Archivos de compilación intermedia
+*.bbl
+*.bcf
+*.fdb_latexmk
+*.fls

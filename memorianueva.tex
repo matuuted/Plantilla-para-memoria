@@ -24,6 +24,7 @@
 \usepackage{graphicx}       % Manejo de gráficos
 \usepackage{eso-pic}        % Permite agregar fondos
 \usepackage{hyperref}       % Manejo de hipervínculos y marcadores
+\usepackage{float}
 
 % Redefinición de caracteres problemáticos en marcadores
 \hypersetup{
@@ -77,7 +78,9 @@
 
 \begin{abstract}
 \addchaptertocentry{\abstractname} % Agregar resumen al índice
-El resumen debe escribirse en uno o dos párrafos. Debe ser breve y conciso, sin ningún elemento de formato en el texto como itálicas o negritas. Tampoco se deben usar siglas ni acrónimos que no resulten obvios para un lector promedio de la memoria, ni referencias bibliográficas o notas al pie de página. No debe faltar qué es lo que se hizo/logró, qué importancia/valor tiene el proyecto/resultado, qué va a encontrar el lector en la memoria y qué contenidos de la especialización/maestría se aplicaron en el proyecto.
+La presente memoria describe el trabajo realizado para el desarrollo de un sistema inteligente de dispensado de comida para gatos. El objetivo del trabajo fue mejorar el bienestar animal mediante la automatización del suministro de alimento y el monitoreo del consumo a través de un software. Para ello se emplearon un microcontrolador de alto desempeño, sensores de pesaje y módulos de comunicación inalámbrica, lo que permitió obtener una solución que combina el cuidado de mascotas con los avances de los sistemas embebidos y la Internet de las Cosas (IoT).  
+
+El desarrollo abarcó el diseño del hardware, la implementación del software de control y la validación del sistema mediante pruebas funcionales. Se aplicaron conocimientos en electrónica, programación de microcontroladores y protocolos de comunicación, con el fin de obtener un producto confiable, autónomo y con potencial de aplicación comercial.
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
@@ -86,7 +89,11 @@ El resumen debe escribirse en uno o dos párrafos. Debe ser breve y conciso, sin
 
 \begin{acknowledgements}
 \vspace{1.5cm}
-Esta sección es para agradecimientos personales y es totalmente \textbf{OPCIONAL}.
+A mi novia, mi familia, amigos y compañeros.
+
+A mi director de trabajo, Esp. Ing. Santiago Bualó, por compartir sus conocimientos y orientación a lo largo de la especialización.
+
+A mis colegas ingenieros, por el apoyo constante, los valiosos consejos y las sugerencias técnicas brindadas durante cada etapa del desarrollo de este trabajo.
 \end{acknowledgements}
 
 %----------------------------------------------------------------------------------------
@@ -101,7 +108,9 @@ Esta sección es para agradecimientos personales y es totalmente \textbf{OPCIONA
 % Dedicatoria
 %----------------------------------------------------------------------------------------
 
-\dedicatory{\textbf{Dedicado a... [OPCIONAL]}}
+\dedicatory{\textbf{
+A mi novia Sofía, por su compañía durante la cursada de la especialización y su apoyo constante durante el desarrollo del trabajo.\\[0.5em] A mi familia, por el amor y el orgullo que sienten en cada pequeño paso que doy en la dirección de lo que elegí para mi vida: la electrónica. \\[1em] A todos ellos, ¡muchas gracias! 
+}}
 
 %----------------------------------------------------------------------------------------
 % Capítulos

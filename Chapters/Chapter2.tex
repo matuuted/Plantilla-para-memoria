@@ -14,10 +14,11 @@ El microcontrolador empleado es el modelo STM32F446RE de STMicroelectronics, que
 Cuenta con múltiples entradas y salidas digitales y analógicas, convertidores analógicos-digitales de 12 bits y hasta 17 temporizadores.  Posee además diversas interfaces de comunicación, entre las que se destacan UART \cite{uart_spec} ({\it{Universal Asynchronous Receiver-Transmitter}}) e I\textsuperscript{2}C \cite{i2c_spec} ({\it{Inter-Integrated Circuit}}). Para el desarrollo de este trabajo se utilizó la placa de evaluación Nucleo-F446RE \cite{nucleo_f446re}, que puede observarse en la figura \ref{fig:nucleo}, y que integra el módulo ST-LINK necesario para la programación y depuración del microcontrolador.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=5cm, height=5cm]{./Figures/nucleo.png}
+	\includegraphics[width=4.4cm, height=4.4cm]{./Figures/nucleo.png}
 	\caption{Placa de evaluación Nucleo de STM.\protect\footnotemark}
 	\label{fig:nucleo}
 \end{figure}
+\vspace{-0.4cm}
 \footnotetext{\url{https://www.st.com/en/evaluation-tools/nucleo-f446re.html}}
 
 \subsection{Módulo ESP32}
@@ -25,7 +26,7 @@ Cuenta con múltiples entradas y salidas digitales y analógicas, convertidores 
 Para la comunicación inalámbrica con el usuario se utilizó un módulo ESP32, que actuó como puente (bridge) entre el microcontrolador STM32 y la aplicación en PC. 
 La comunicación entre el STM32 y el ESP32 se realizó a través del protocolo UART, mientras que el ESP32 gestionó la comunicación Bluetooth con la aplicación receptora.
 
-En cuanto a sus características técnicas, el ESP32 es un SoC (\textit{System on Chip}) desarrollado por Espressif Systems \cite{esp32_datasheet}. Cuenta con doble núcleo Xtensa LX6 a 240 MHz e integra conectividad Wi-Fi \mbox{802.11b/g/n} y Bluetooth 4.2, con soporte para Bluetooth Classic y BLE (\textit{Bluetooth Low Energy}). En la figura~\ref{fig:esp32} se muestra el módulo, donde se distingue la antena Bluetooth integrada en el extremo superior. En este trabajo se utilizó exclusivamente la funcionalidad Bluetooth Classic para la transmisión de datos en formato JSON (\textit{JavaScript Object Notation}).
+En cuanto a sus características técnicas, el ESP32 es un SoC (\textit{System on Chip}) desarrollado por Espressif Systems \cite{esp32_datasheet}. Cuenta con doble núcleo Xtensa LX6 a 240 MHz e integra conectividad Wi-Fi \mbox{802.11b/g/n} y Bluetooth 4.2, con soporte para Bluetooth Classic y BLE (\textit{Bluetooth Low Energy}). En la figura~\ref{fig:esp32} se muestra el módulo, donde se distingue la antena Bluetooth integrada en el extremo superior. En este trabajo se utilizó exclusivamente la funcionalidad Bluetooth Classic para la transmisión de datos en formato \texttt{JSON} (\textit{JavaScript Object Notation}).
 
 \begin{figure}[H]
     \centering
@@ -35,8 +36,10 @@ En cuanto a sus características técnicas, el ESP32 es un SoC (\textit{System o
 \end{figure}
 \footnotetext{\url{https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf}}
 
+\vspace{-0.5cm}
 \subsection{Celda de carga y módulo HX711} 
 Para medir el peso del alimento en el plato se utilizó una celda de carga tipo galga extensiométrica combinada con el módulo amplificador y conversor analógico-digital HX711. La celda de carga convierte la fuerza aplicada en una variación de resistencia eléctrica de muy baja amplitud. Dado que el microcontrolador no puede procesar señales analógicas de esa magnitud directamente, se incorporó el módulo HX711 que amplifica y digitaliza dicha señal con una resolución de 24 bits. En la figura \ref{fig:hx711} se ilustran la celda de carga en la parte superior y el módulo HX711 con sus terminales de conexión en la parte inferior.
+
 
 \begin{figure}[H]
     \centering
@@ -53,7 +56,7 @@ Para la comunicación con el microcontrolador, el HX711 utiliza una interfaz de 
 
 El mecanismo de dispensado de alimento fue accionado por un motor paso a paso NEMA 17 \cite{nema17_datasheet}, seleccionado por su precisión de movimiento y su par motor. Para su control se utilizó el driver A4988 de Pololu \cite{a4988_datasheet}, un módulo compacto que permite gestionar motores paso a paso bipolares con corrientes de hasta 2 A por fase. En la figura \ref{fig:motor_driver} se muestran el motor NEMA 17 (figura \ref{fig:nema17}) y el driver A4988 junto con su disipador térmico (figura \ref{fig:a4988}).
 
-
+\vspace{-0.8cm}
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
@@ -74,20 +77,24 @@ El mecanismo de dispensado de alimento fue accionado por un motor paso a paso NE
 \end{figure}
 \footnotetext{\url{https://www.pololu.com/product/1182}}
 
+\vspace{-0.5cm}
 El driver A4988 acepta señales de dirección (DIR) y paso (STEP) provenientes del microcontrolador y permite ajustar la resolución de movimiento mediante micropasos. Su tensión de alimentación lógica es de 3,3 V a 5,5 V, mientras que la tensión de potencia para el control del motor puede ser de hasta 35 V.
 
 \subsection{Módulo RTC DS3231}
 
 Para la gestión autónoma de los horarios de dispensado se incorporó un módulo de reloj de tiempo real (RTC) basado en el integrado DS3231 de Maxim Integrated \cite{ds3231_datasheet}, que puede observarse en la figura \ref{fig:ds3231}. Este dispositivo proporciona información de fecha y hora con una precisión de ±2 ppm, equivalente a aproximadamente 1 minuto de desviación por año.
 
+\vspace{-0.4cm}
 \begin{figure}[H]
     \centering
     \includegraphics[width=6cm, height=3cm]{./Figures/DS3231.png}
     \caption{Módulo RTC DS3231.\protect\footnotemark}
     \label{fig:ds3231}
 \end{figure}
+\vspace{-0.2cm}
 \footnotetext{\url{https://www.analog.com/en/products/ds3231.html}}
 
+\vspace{-0.5cm}
 El DS3231 se comunica con el microcontrolador mediante el protocolo I\textsuperscript{2}C y dispone de una batería de respaldo (batería de litio tipo botón CR1220) que mantiene el funcionamiento del reloj ante cortes de energía.  De este modo, los horarios de dispensado programados se conservan aun cuando el sistema se encuentre sin alimentación principal.
 
 \section{Software y entorno de desarrollo}
@@ -126,12 +133,12 @@ de interfaz de cada módulo y a decisiones de diseño del sistema.
 
 \subsection{Protocolo I2C}
 
-Este protocolo consiste en un bus serie síncrono, bidireccional y semidúplex, organizado bajo una arquitectura maestro-esclavo. Utiliza dos líneas eléctricas: SCL para la señal de reloj y SDA para la transferencia de datos. La comunicación se basa en tramas que incluyen la dirección de 7 bits del dispositivo, un bit de lectura/escritura y un mecanismo de confirmación mediante señales ACK (\textit{Acknowledgement}) y NACK (\textit{Not Acknowledgement}).
+Este protocolo consiste en un bus serie síncrono, bidireccional y semidúplex, organizado bajo una arquitectura maestro-esclavo. Utiliza dos líneas eléctricas: SCL para la señal de reloj y SDA para la transferencia de datos. La comunicación se basa en tramas que incluyen la dirección de 7 bits del dispositivo, un bit de lectura/escritura y un mecanismo de confirmación mediante señales ACK (\textit{Acknowledgement}) y NACK (\textit{Not Acknowledgement}) \cite{i2c_spec}.
 
 \subsection{Protocolo UART}
 
-El protocolo UART se utilizó para la comunicación serie entre el microcontrolador STM32 y el módulo ESP32. Este protocolo es asíncrono y utiliza dos líneas físicas: una de transmisión (TX) y otra de recepción (RX). Los datos se transmiten en tramas compuestas por un bit de inicio, los bits de datos (generalmente 8) y un bit de parada. En este sistema se configuraron ambos extremos con una velocidad de 115200 baudios, sin paridad y con un bit de parada.
+El protocolo UART se utilizó para la comunicación serie entre el microcontrolador STM32 y el módulo ESP32. Este protocolo es asíncrono y utiliza dos líneas físicas: una de transmisión (TX) y otra de recepción (RX). Los datos se transmiten en tramas compuestas por un bit de inicio, los bits de datos (generalmente 8) y un bit de parada. En este sistema se configuraron ambos extremos con una velocidad de 115200 baudios, sin paridad y con un bit de parada \cite{uart_spec}.
 
-\subsection{Bluetooth Classic (SPP)}
+\subsection{Bluetooth Classic}
 
-El módulo ESP32 gestionó la comunicación inalámbrica con la aplicación en PC mediante Bluetooth Classic bajo el perfil SPP (\textit{Serial Port Profile}). Este perfil emula una comunicación serie sobre el canal Bluetooth, lo que facilita la integración con el microcontrolador, ya que los datos recibidos por UART desde el STM32 fueron reenviados por Bluetooth, y viceversa. Los datos se transmiten en formato JSON, lo que permite estructurar la información de manera legible y extensible.
+El módulo ESP32 gestionó la comunicación inalámbrica con la aplicación en PC mediante Bluetooth Classic bajo el perfil SPP (\textit{Serial Port Profile}). Este perfil emula una comunicación serie sobre el canal Bluetooth, lo que facilita la integración con el microcontrolador, ya que los datos recibidos por UART desde el STM32 fueron reenviados por Bluetooth, y viceversa. Los datos se transmiten en formato \texttt{JSON}, lo que permite estructurar la información de manera legible y extensible \cite{spp_spec}.

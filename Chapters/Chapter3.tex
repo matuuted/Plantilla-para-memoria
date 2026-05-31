@@ -1,3 +1,6 @@
+%=============================================================================
+% CAPÍTULO 3 — Diseño e implementación
+%=============================================================================
 \chapter{Diseño e implementación} % Main chapter title
 
 \label{Chapter3} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
@@ -40,138 +43,311 @@ En este capítulo se describen el diseño e implementación del sistema desarrol
   morecomment=[s]{/*}{*/}
 }
 
-
-%----------------------------------------------------------------------------------------
-%	SECTION 1
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------------------------
 \section{Arquitectura general del sistema}
+%-----------------------------------------------------------------------------
 
-El sistema desarrollado constituye un dispensador automático de alimento seco para gatos, capaz de operar de forma autónoma sin dependencia de una conexión a Internet. El dispositivo gestiona la entrega de alimento en horarios programados, monitorea el peso del tanque de almacenamiento y del plato de consumo. Esta información se comunica al usuario a través de una aplicación de escritorio mediante Bluetooth.
+El sistema desarrollado constituye un dispensador automático de alimento seco
+para gatos, capaz de operar de forma autónoma sin dependencia de una conexión
+a Internet. El dispositivo gestiona la entrega de alimento en horarios programados
+y monitorea el peso del tanque de almacenamiento y del plato de consumo.
+Esta información se comunica al usuario a través de una aplicación de escritorio
+mediante Bluetooth.
 
-El componente central del sistema es el microcontrolador STM32F446RE, que actúa como unidad de procesamiento principal. Este componente coordina la lectura de los sensores de pesaje, controla el motor de dispensado y administra la comunicación con los módulos periféricos. La figura \ref{fig:bloques} presenta el diagrama en bloques del sistema, donde se distinguen tres bloques funcionales principales: sensado, control y comunicación con el usuario.
+El componente central del sistema es el microcontrolador STM32F446RE, que actúa
+como unidad de procesamiento principal. Este componente coordina la lectura de
+los sensores de pesaje, controla el motor de dispensado y administra la
+comunicación con los módulos periféricos. La figura~\ref{fig:diagrama_bloques}
+presenta el diagrama en bloques del sistema, donde se distinguen tres bloques
+funcionales principales: sensado, control y comunicación con el usuario.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{./Figures/diagrama_bloques.png}
+    \includegraphics[width=0.9\textwidth]{./Figures/diagrama_bloques.png}
     \caption{Diagrama en bloques del sistema.}
-    \label{fig:bloques}
+    \label{fig:diagrama_bloques}
 \end{figure}
 
-El bloque de sensado comprende dos módulos HX711 conectados a sus respectivas celdas de carga: uno ubicado bajo el tanque de almacenamiento y otro bajo el plato. A estos se suma el módulo DS3231, que provee la referencia temporal necesaria para la gestión autónoma de los horarios de dispensado.
+El bloque de sensado comprende dos módulos HX711 conectados a sus respectivas
+celdas de carga: uno ubicado bajo el tanque de almacenamiento y otro bajo el
+plato. A estos se suma el módulo DS3231, que provee la referencia temporal
+necesaria para la gestión autónoma de los horarios de dispensado.
 
-El bloque de control concentra toda la lógica de la aplicación en el microcontrolador, e incorpora también el motor paso a paso NEMA 17 con su driver A4988, el pulsador de dispensado manual y el LED de estado del sistema. 
+El bloque de control concentra toda la lógica de la aplicación en el
+microcontrolador, e incorpora también el motor paso a paso NEMA~17 con su
+driver A4988, el pulsador de dispensado manual y el LED de estado del sistema.
 
-El bloque de comunicación con el usuario está compuesto por el módulo ESP32, que opera como puente entre el microcontrolador y la aplicación de escritorio desarrollada en Flutter, a través de Bluetooth Classic.
+El bloque de comunicación con el usuario está compuesto por el módulo ESP32,
+que opera como puente entre el microcontrolador y la aplicación de escritorio
+desarrollada en Flutter, a través de Bluetooth Classic.
 
-
+%-----------------------------------------------------------------------------
 \section{Arquitectura de hardware}
+%-----------------------------------------------------------------------------
 
-En esta sección se describe la interconexión entre los componentes electrónicos que conforman el sistema, junto con el análisis de potencia necesario para garantizar su correcto funcionamiento.
+En esta sección se describe la interconexión entre los componentes electrónicos
+que conforman el sistema, junto con el análisis de potencia necesario para
+garantizar su correcto funcionamiento.
 
-\subsection{Alimentación y microcontrolador}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Gestión de alimentación}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 En primera instancia, se debe resolver el requerimiento de alimentación del sistema. A diferencia de soluciones portátiles basadas en batería, el presente trabajo utiliza una fuente de alimentación de 12 V de corriente alterna como fuente de energía principal. Esta decisión se fundamenta en el elevado consumo del motor paso a paso NEMA 17 con su driver A4988, que en condiciones de máxima carga puede demandar hasta 2 A, lo que hace inviable el uso de una batería para una operación continua y prolongada.
 
-Dado que la totalidad de los componentes del sistema opera a una tensión nominal de 5 V, se incorpora un regulador de voltaje reductor (\textit{step-down}) basado en el integrado LM2596S \cite{LM2596S}, capaz de aceptar tensiones de entrada de hasta 35 V y entregar una corriente máxima de 3 A con tensión de salida ajustable. La figura \ref{fig:step_down} muestra el módulo comercial utilizado, y la figura~\ref{fig:conexion_alimentacion} ilustra su conexión con el microcontrolador.
+Dado que la totalidad de los componentes del sistema opera a una tensión nominal
+de 5~V, se incorporó un regulador de voltaje reductor (step-down) basado
+en el integrado LM2596S~\cite{LM2596S}, capaz de aceptar tensiones de entrada de
+hasta 35~V y entregar una corriente máxima de 3~A con tensión de salida
+ajustable. La figura~\ref{fig:conexion_alimentacion} ilustra su conexión con el
+microcontrolador.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=4cm, height=4cm]{./Figures/step_down.png}
-    \caption{Módulo regulador de voltaje reductor basado en el LM2596S.\protect\footnotemark}
-    \label{fig:step_down}
-\end{figure}
-\footnotetext{Imagen del módulo comercial LM2596S.}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{./Figures/conexion_alimentacion.png}
+    \includegraphics[width=0.8\textwidth]{./Figures/conexion_alimentacion.png}
     \caption{Interconexión entre la fuente de alimentación y el microcontrolador.}
     \label{fig:conexion_alimentacion}
 \end{figure}
 
+\vspace{-0.8cm}
 
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Interconexión de componentes}
-Una vez presentados los componentes del sistema en el capítulo anterior, se describe a continuación cómo se interconectan entre sí. Todos los módulos operan a una tensión nominal de 5 V, por lo que comparten la misma fuente de alimentación. 
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-El microcontrolador STM32F446RE se comunica con los dos módulos HX711 mediante señales digitales GPIO. Cada módulo HX711 emplea una interfaz de dos cables: uno de reloj (CLK) y uno de datos (DATA), conectados a pines GPIO del microcontrolador configurados como salida y entrada respectivamente. El módulo DS3231 se conecta al microcontrolador a través del bus I\textsuperscript{2}C, utilizando las líneas SCL y SDA del periférico I2C1, configurado a 400 kHz. El módulo ESP32 se conecta mediante el periférico UART4, configurado a 115.200 baudios con formato 8N1. El pulsador de dispensado manual se conecta a un pin configurado como entrada con interrupción externa (EXTI), con un tiempo de antirrebote de 200 ms implementado por software. El LED de estado se conecta a una salida GPIO de propósito general. La figura~\ref{fig:conexion_perifericos} muestra el esquema de estas conexiones.
+Una vez presentados los componentes del sistema en el capítulo anterior, se
+describe a continuación cómo se interconectan entre sí. Todos los módulos operan
+a una tensión nominal de 5~V, por lo que comparten la misma fuente de
+alimentación.
+
+El microcontrolador STM32F446RE se comunica con los dos módulos HX711 mediante
+señales digitales GPIO. Cada módulo HX711 emplea una interfaz de dos cables: uno
+de reloj (CLK) y uno de datos (DATA), conectados a pines GPIO del
+microcontrolador configurados como salida y entrada respectivamente. El módulo
+DS3231 se conecta al microcontrolador a través del bus I$^2$C, utilizando las
+líneas SCL y SDA del periférico I2C1, configurado a 400~kHz. El módulo ESP32 se
+conecta mediante el periférico UART4, configurado a 115.200 baudios con formato
+8N1. El pulsador de dispensado manual se conecta a un pin configurado como
+entrada con interrupción externa (EXTI), con un tiempo de antirrebote de 200~ms
+implementado por software. El LED de estado se conecta a una salida GPIO de
+propósito general. La figura~\ref{fig:conexion_perifericos} muestra el esquema de
+estas conexiones.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{./Figures/conexion_perifericos.png}
+    \includegraphics[width=0.9\textwidth]{./Figures/conexion_perifericos.png}
     \caption{Interconexión entre el microcontrolador y sus periféricos.}
     \label{fig:conexion_perifericos}
 \end{figure}
 
-El motor paso a paso NEMA 17 se controla a través del driver A4988, que recibe tres señales digitales provenientes del microcontrolador: la señal STEP, generada por el canal 3 del temporizador TIM2 en modo PWM sobre el pin PB10; la señal DIR, que define el sentido de giro; y la señal ENABLE, que habilita o deshabilita el driver. Las señales DIR y ENABLE se manejan como salidas GPIO simples. La figura~\ref{fig:conexion_motor} ilustra el esquema de conexión entre el microcontrolador, el driver y el motor.
+\vspace{-0.4cm}
+
+El motor paso a paso NEMA~17 se controla a través del driver A4988, que recibe tres señales digitales provenientes del microcontrolador. La señal \texttt{STEP}, generada por el canal~3 del temporizador \texttt{TIM2} en modo PWM sobre el pin \texttt{PB10}, determina la velocidad y el número de pasos ejecutados por el motor. La señal \texttt{DIR} define el sentido de giro, mientras que la señal \texttt{ENABLE} habilita o deshabilita el driver. Las señales \texttt{DIR} y \texttt{ENABLE} se manejan como salidas GPIO simples. La figura~\ref{fig:conexion_motor} ilustra el esquema de conexión entre el microcontrolador, el driver y el motor.
+
+\vspace{-0.4cm}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{./Figures/conexion_motor.png}
-    \caption{Interconexión entre el microcontrolador, el driver A4988 y el motor NEMA 17.}
+    \includegraphics[width=0.9\textwidth]{./Figures/conexion_motor.png}
+    \caption{Interconexión entre el microcontrolador, el driver A4988 y el motor NEMA~17.}
     \label{fig:conexion_motor}
 \end{figure}
 
-
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Análisis de potencia}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-El prototipo desarrollado requiere una fuente de alimentación capaz de proveer la corriente suficiente para todos los componentes del sistema de forma simultánea. La tabla~\ref{tab:potencia} resume el consumo máximo de cada componente según las hojas de datos de sus fabricantes.
+El prototipo desarrollado requiere una fuente de alimentación capaz de proveer la
+corriente suficiente para todos los componentes del sistema de forma simultánea.
+La tabla~\ref{tab:consumo} resume el consumo máximo de cada componente según las
+hojas de datos de sus fabricantes.
+
+\vspace{-0.4cm}
 
 \begin{table}[H]
 \centering
 \caption{Consumo máximo de cada componente del sistema.}
-\label{tab:potencia}
+\label{tab:consumo}
 \begin{tabular}{lcc}
 \toprule
 \textbf{Componente} & \textbf{Tensión (V)} & \textbf{Corriente máxima (mA)} \\
 \midrule
-STM32F446RE           & 5  & 36   \\
-HX711 (×2)            & 5  & 3    \\
-DS3231                & 5  & 1    \\
-Driver A4988          & 5  & 10   \\
-Motor NEMA 17         & 12 & 1700 \\
-ESP32                 & 5  & 130  \\
-LED de estado         & 5  & 20   \\
+STM32F446RE       & 5  & 36   \\
+HX711 (×2)        & 5  & 3    \\
+DS3231            & 5  & 1    \\
+Driver A4988      & 5  & 10   \\
+Motor NEMA~17     & 12 & 1700 \\
+ESP32             & 5  & 130  \\
+LED de estado     & 5  & 20   \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Del análisis de la tabla se concluye que el componente de mayor consumo es el motor paso a paso NEMA 17, que opera a 12 V y puede demandar hasta 1,7 A por fase en condiciones de máxima carga. El resto de los componentes opera a 5 V con un consumo total aproximado de 200 mA. Estos valores justifican la elección de una fuente de alimentación de 12 V y el módulo regulador LM2596S, cuya corriente máxima de salida de 3 A provee el margen necesario para una operación confiable del sistema.
+Del análisis de la tabla se concluye que el componente de mayor consumo es
+el motor paso a paso NEMA~17, que opera a 12~V y puede demandar hasta 1,7~A
+por fase en condiciones de máxima carga. El resto de los componentes opera a
+5~V con un consumo total aproximado de 200~mA. Estos valores justifican la
+elección de una fuente de alimentación de 12~V y el módulo regulador LM2596S,
+cuya corriente máxima de salida de 3~A provee el margen necesario para una
+operación confiable del sistema.
 
+\vspace{-0.2cm}
 
-\section{Arquitectura de software}
+%-----------------------------------------------------------------------------
+\section{Diseño del firmware}
+%-----------------------------------------------------------------------------
 
 En esta sección se describe la organización del firmware desarrollado para el microcontrolador STM32F446RE y la lógica de control que gobierna el comportamiento del sistema.
 
-\subsection{Desarrollo del firmware}
+\vspace{-0.2cm}
 
-Para implementar la lógica del trabajo, se desarrollaron módulos de software de forma independiente, con el propósito de que su desarrollo fuera autónomo y para facilitar su integración. La figura~\ref{fig:software_bloques} muestra el diagrama en bloques que representa los subsistemas que conforman el firmware.
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Organización del firmware}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Para implementar la lógica del trabajo, se desarrollaron módulos de software de
+forma independiente, con el propósito de que su desarrollo fuera autónomo y para
+facilitar su integración. La figura~\ref{fig:diagrama_software} muestra el diagrama
+en bloques que representa los subsistemas que conforman el firmware.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.52\textwidth]{./Figures/diagrama_software.png}
-    \caption{Diagrama en bloques de subsistemas de software.}
-    \label{fig:software_bloques}
+    \includegraphics[width=0.68\textwidth]{./Figures/diagrama_software.png}
+    \caption{Diagrama en bloques de los subsistemas de software.}
+    \label{fig:diagrama_software}
 \end{figure}
 
-El módulo central del sistema es el orquestador, cuya función es inicializar todos los periféricos necesarios y luego gestionar la lógica de control a través de una máquina de estados. Para ello se utilizó FreeRTOS \cite{freertos_ref}, con dos tareas principales: una encargada del control del dispensado y otra dedicada a la comunicación con el usuario.
+El módulo central del sistema es el orquestador, cuya función es inicializar todos
+los periféricos necesarios y luego gestionar la lógica de control a través de una
+máquina de estados. Para ello se utilizó FreeRTOS~\cite{freertos_ref}, con dos
+tareas principales: una encargada del control del dispensado y otra dedicada a la
+comunicación con el usuario.
 
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo orquestador}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-El módulo orquestador gestiona el ciclo completo de operación del dispensador mediante una máquina de estados finita. La figura~\ref{fig:estados} presenta el diagrama de estados del sistema.
+El módulo orquestador gestiona el ciclo completo de operación del dispensador
+mediante una máquina de estados finita. La figura~\ref{fig:estados} presenta el
+diagrama de estados del sistema.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.52\textwidth]{./Figures/diagrama_estados.png}
+    \includegraphics[width=0.7\textwidth]{./Figures/diagrama_estados.png}
     \caption{Diagrama de estados del dispensador.}
     \label{fig:estados}
 \end{figure}
 
-El sistema transmite dos tipos de mensajes hacia la aplicación. El primero es un mensaje de telemetría enviado cada 1 segundo que incluye el peso del tanque y el peso del plato, con la fecha y la hora provistas por el módulo DS3231. El segundo se emite al completarse un ciclo de dispensado e informa la cantidad dispensada, el origen del evento y la hora en que ocurrió. Desde la aplicación, el usuario puede enviar comandos para solicitar un dispensado manual, ejecutar la tara de las celdas de carga o actualizar los horarios programados.
+El estado \texttt{ST\_INIT} corresponde a la inicialización del sistema: se
+configuran los periféricos, se establece la comunicación con los módulos HX711 y
+DS3231, y se ejecuta la tara automática de las celdas de carga. Si la
+inicialización concluye de forma exitosa, el sistema transita al estado
+\texttt{ST\_IDLE}. Ante un error irrecuperable, transita al estado
+\texttt{ST\_ERROR}, donde el LED permanece encendido y el sistema realiza un
+reinicio automático tras 10~s.
 
+En el estado \texttt{ST\_IDLE}, el sistema aguarda eventos: lee periódicamente el
+reloj de tiempo real, transmite la telemetría hacia la aplicación y evalúa la
+ocurrencia de un horario programado o de una pulsación manual. Cuando se detecta
+el evento \texttt{EVT\_BUTTON} o \texttt{EVT\_SCHEDULED\_FEED}, el sistema
+transita al estado \texttt{ST\_DISPENSING}, donde activa el motor, notifica al
+usuario y aguarda la confirmación del ciclo. Al completarse el dispensado, retorna
+a \texttt{ST\_IDLE}.
 
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Módulo de periféricos}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+El módulo de periféricos agrupa los componentes de actuación y señalización del
+sistema: el motor paso a paso NEMA~17, el pulsador de dispensado manual y el
+LED de estado.
+
+El control del motor se implementó mediante el driver A4988. La señal
+\texttt{STEP} se genera por el canal~3 del temporizador \texttt{TIM2} en modo
+PWM, y su frecuencia determina la velocidad de rotación. Las señales \texttt{DIR}
+y \texttt{ENABLE}, que controlan el sentido de giro y la habilitación del driver
+respectivamente, se implementaron como salidas GPIO de propósito general. La
+cantidad de pasos ejecutados en cada ciclo de dispensado determina la porción de
+alimento entregada.
+
+El pulsador de dispensado manual se conectó a un pin configurado con interrupción
+externa (\texttt{EXTI}). La rutina de servicio de interrupción implementó un
+mecanismo de antirrebote de 200~ms por software y publicó un evento en la cola
+de despacho del sistema operativo para notificar a la tarea de control del
+dispensado.
+
+El LED de estado refleja el estado activo de la máquina de estados: permanece
+encendido de forma continua en \texttt{ST\_ERROR}, parpadea a 1~Hz durante
+\texttt{ST\_IDLE} y se apaga en \texttt{ST\_DISPENSING}.
+
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Módulo de pesaje}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+El módulo de pesaje gestiona la inicialización y la lectura periódica de los dos
+módulos HX711 conectados a las celdas de carga del tanque y del plato.
+
+Durante el estado \texttt{ST\_INIT}, el módulo ejecuta una tara automática que
+establece el valor de referencia de reposo de cada celda. A partir de ese punto,
+las lecturas de peso se obtienen a partir de un factor de calibración aplicado sobre los
+valores digitales de 24~bits provistos por el HX711, y se expresan en gramos.
+Para reducir el ruido en la señal, cada lectura resulta del promedio
+de 8~muestras consecutivas.
+
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Módulo de gestión de horarios}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+El módulo de gestión de horarios compara periódicamente la hora provista por el
+módulo DS3231 con la lista de horarios de dispensado almacenados. En cada ciclo
+de la tarea de control, durante el estado \texttt{ST\_IDLE}, se consultan las
+horas y los minutos del reloj de tiempo real y se verifica si alguno de los
+horarios activos coincide con el instante actual. Cuando se detecta una
+coincidencia, se genera el evento \texttt{EVT\_SCHEDULED\_FEED}, que desencadena
+la transición al estado \texttt{ST\_DISPENSING}. Un mecanismo de inhibición evita
+que el mismo horario dispare múltiples eventos dentro de la misma ventana temporal
+de un minuto.
+
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Módulo de gestión de almacenamiento}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+El módulo de gestión de almacenamiento tiene como función conservar la configuración del sistema a través de los ciclos de encendido y apagado. Los horarios de dispensado se almacenan en la memoria flash interna del microcontrolador STM32F446RE, lo que permite recuperarlos ante un eventual reinicio del sistema.
+
+El sistema admite hasta diez horarios programados. Cada entrada incluye la hora
+(0–23), los minutos (0–59), un indicador de habilitación y una etiqueta de texto
+identificatoria. Al iniciarse el sistema, los datos se cargan desde la flash hacia
+una estructura en memoria RAM, donde son consultados por el módulo de gestión de
+horarios durante la operación normal.
+
+La actualización de los horarios se origina en la aplicación de escritorio, que
+envía el comando \texttt{set\_schedules} al sistema a través del protocolo de
+comunicación descrito en la sección~\ref{sec:comunicacion}. Al recibir este
+comando, el módulo reemplaza el contenido previo en flash con los nuevos valores.
+
+%-----------------------------------------------------------------------------
+\section{Comunicaciones e interfaces}
+\label{sec:comunicaciones}
+%-----------------------------------------------------------------------------
+
+En esta sección se describe la implementación del protocolo de comunicación entre
+el microcontrolador y la aplicación de escritorio, así como las funcionalidades
+y la estructura de navegación de la interfaz de usuario.
+
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo de comunicación}
+\label{sec:comunicacion}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-El módulo de comunicación gestiona el intercambio de información entre el microcontrolador y la aplicación de escritorio a través del módulo ESP32. La comunicación es bidireccional y se estructura en dos tipos de mensajes: los mensajes salientes, que el sistema envía hacia la aplicación, y los comandos entrantes, que la aplicación envía hacia el sistema. Todos los mensajes se estructuran en formato \texttt{JSON} \cite{JSON}, lo que permite una integración sencilla con la aplicación de escritorio. La figura~\ref{fig:arquitectura_comm} ilustra la arquitectura de comunicación del sistema junto con los mensajes intercambiados.
+El módulo de comunicación gestiona el intercambio de información entre el
+microcontrolador y la aplicación de escritorio a través del módulo ESP32. La
+comunicación es bidireccional y se estructura en dos tipos de mensajes: los
+mensajes salientes, que el sistema envía hacia la aplicación, y los comandos
+entrantes, que la aplicación envía hacia el sistema. Todos los mensajes se
+estructuran en formato \texttt{JSON}~\cite{JSON}, lo que permite una integración
+sencilla con la aplicación de escritorio. La figura~\ref{fig:arquitectura_comm}
+ilustra la arquitectura de comunicación del sistema junto con los mensajes
+intercambiados.
 
 \begin{figure}[H]
     \centering
@@ -180,26 +356,65 @@ El módulo de comunicación gestiona el intercambio de información entre el mic
     \label{fig:arquitectura_comm}
 \end{figure}
 
-Entre los mensajes salientes se destaca el mensaje de telemetría, que se transmite cada 1 segundo e incluye el peso del tanque de almacenamiento, 
-el peso del plato y la fecha y hora provistas por el módulo DS3231. Al completarse un ciclo de dispensado, el sistema envía un mensaje de evento 
-que indica la cantidad dispensada, la etiqueta del horario y la hora en que ocurrió. Entre los comandos entrantes, la aplicación puede solicitar 
-un dispensado manual, ejecutar la tara de las celdas de carga o actualizar los horarios programados.
+\vspace{-0.4cm}
 
+El sistema transmite dos tipos de mensajes hacia la aplicación. El primero es un mensaje de telemetría transmitido cada 1~segundo que incluye el peso del tanque de almacenamiento, el peso del plato y la fecha y hora provistas por el módulo DS3231. Al completarse un ciclo de dispensado, el sistema emite un mensaje de evento con la cantidad dispensada, la etiqueta del tipo de dispensado y la hora en que ocurrió. Entre los comandos
+entrantes, la aplicación puede solicitar un dispensado manual mediante
+\texttt{manual\_feed}, ejecutar la tara de las celdas de carga mediante
+\texttt{tare}, o actualizar los horarios programados mediante
+\texttt{set\_schedules}.
+
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Interfaz de usuario}
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-La interfaz de usuario se implementó como una aplicación de escritorio desarrollada en Flutter, que corre sobre el sistema operativo Windows y 
-se comunica con el sistema mediante Bluetooth Classic. La aplicación permite al usuario visualizar en tiempo real el peso del tanque de 
-almacenamiento y del plato de consumo, consultar el historial de dispensados, configurar los horarios programados y ejecutar un dispensado 
-manual o una tara de las celdas de carga. La figura~\ref{fig:app_flutter} muestra la interfaz principal de la aplicación.
+La interfaz de usuario se implementó como una aplicación de escritorio desarrollada
+en Flutter, que corre sobre el sistema operativo Windows y se comunica con el
+sistema mediante Bluetooth Classic. La aplicación permite al usuario visualizar
+en tiempo real el peso del tanque de almacenamiento y del plato de consumo,
+consultar el historial de dispensados, configurar los horarios programados y
+ejecutar un dispensado manual o una tara de las celdas de carga.
+
+La aplicación se organiza en cinco pantallas principales accesibles desde una
+barra de navegación inferior: Inicio, Horarios, Historial, Vincular y Ajustes.
+La figura~\ref{fig:sitemap_app} presenta el diagrama de navegación de la
+aplicación con el contenido de cada pantalla.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[
-        width=0.45\textwidth,
-        trim={0cm 0cm 6cm 0cm},
-        clip
-    ]{./Figures/app_flutter.png}
-    \caption{Interfaz principal de la aplicación de escritorio 
-    desarrollada en Flutter.}
-    \label{fig:app_flutter}
+    \includegraphics[width=0.95\textwidth]{./Figures/sitemap_app.png}
+    \caption{Diagrama de navegación de la aplicación de escritorio.}
+    \label{fig:sitemap_app}
 \end{figure}
+
+\vspace{-0.4cm}
+
+La pantalla de inicio muestra el \emph{dashboard} principal con los valores de
+peso actualizados en tiempo real y el estado de la última alimentación registrada.
+La pantalla de horarios permite consultar y gestionar los horarios programados. La pantalla de historial presenta el registro completo de eventos de dispensado con fecha, hora y cantidad. La pantalla de vinculación facilita el proceso de conexión Bluetooth con el dispositivo. Finalmente, la pantalla de
+ajustes permite configurar el perfil de la mascota y los parámetros generales de la
+aplicación.
+
+%-----------------------------------------------------------------------------
+\section{Integración hardware-software}
+%-----------------------------------------------------------------------------
+
+En esta sección se describe cómo los módulos de hardware y firmware interactúan
+durante la operación del sistema. La figura~\ref{fig:integracion_hw_sw} ilustra
+el diagrama de integración, donde se observa la relación entre las tareas de
+FreeRTOS y los componentes físicos del sistema.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{./Figures/diagrama_freertos.png}
+    \caption{Diagrama de integración hardware-software del sistema.}
+    \label{fig:integracion_hw_sw}
+\end{figure}
+
+El firmware se estructuró en torno a dos tareas concurrentes de FreeRTOS: la tarea de control del dispensado y la tarea de comunicación. La primera gestiona directamente los periféricos de hardware: lee el peso de las celdas de carga a través de los módulos HX711, consulta la hora al módulo DS3231, controla el motor NEMA~17 y atiende las interrupciones del pulsador. La segunda se encarga exclusivamente del intercambio de mensajes con la aplicación de escritorio a través del módulo ESP32 por UART.
+
+La sincronización entre ambas tareas se realiza mediante una cola de mensajes
+de FreeRTOS (\texttt{xQueueHandle}). Cuando la tarea de comunicación recibe un
+comando proveniente de la aplicación, lo publica en la cola. La tarea de
+control del dispensado consume estos eventos en cada iteración de la máquina de
+estados y ejecuta la acción correspondiente. Al completarse un ciclo de dispensado, la tarea de control publica el resultado en la cola para que la tarea de comunicación lo notifique a la aplicación. Este mecanismo garantiza que el procesamiento de comandos externos no interfiera con el ciclo de control del hardware, y ambas tareas operen de forma desacoplada.

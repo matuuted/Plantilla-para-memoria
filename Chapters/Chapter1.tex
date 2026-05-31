@@ -39,6 +39,14 @@ La domótica, entendida como la aplicación de tecnologías de automatización y
 
 En el área específica del cuidado de mascotas, esta tendencia se traduce en dispositivos capaces de automatizar tareas rutinarias como la alimentación, la hidratación y el monitoreo de actividad, integrándose en muchos casos a plataformas de Internet de las Cosas (IoT) que permiten el acceso remoto desde dispositivos móviles.
 
+
+%----------------------------------------------------------------------------------------
+\section{Contexto y motivación}
+
+La motivación principal de este trabajo surge de la necesidad de contar con un sistema de alimentación para gatos que no solo automatice la entrega de comida, sino que también brinde información confiable sobre el comportamiento alimenticio de la mascota. Esta información resulta valiosa tanto para el propietario como para el veterinario, ya que permite detectar anomalías en el consumo que podrían indicar alteraciones en el estado de salud del animal.
+
+Por otra parte, la disponibilidad de microcontroladores de alta capacidad, módulos de comunicación inalámbrica y sensores de precisión a precios accesibles representa una oportunidad para desarrollar soluciones tecnológicas que superen las limitaciones de los productos comerciales existentes. La Carrera de Especialización en Sistemas Embebidos de la FIUBA brindó las herramientas conceptuales y prácticas necesarias para llevar adelante un desarrollo de este tipo con rigor técnico y metodológico.
+
 %----------------------------------------------------------------------------------------
 
 \section{Estado del arte}
@@ -103,13 +111,8 @@ Precio aproximado        & USD~120,69    & USD~89,99            & Bajo costo    
 Entre los aportes descritos, el módulo de pesaje del plato representa el diferencial más significativo, ya que ninguno de los productos comerciales analizados es capaz de determinar si el animal consumió efectivamente el alimento entregado. La operación autónoma ante cortes de conectividad y el bajo costo de implementación con componentes disponibles en el mercado local complementan esta ventaja, configurando una solución con potencial de aplicación tanto doméstica como clínica.
 %----------------------------------------------------------------------------------------
 
-\section{Motivación}
 
-La motivación principal de este trabajo surge de la necesidad de contar con un sistema de alimentación para gatos que no solo automatice la entrega de comida, sino que también brinde información confiable sobre el comportamiento alimenticio de la mascota. Esta información resulta valiosa tanto para el propietario como para el veterinario, ya que permite detectar anomalías en el consumo que podrían indicar alteraciones en el estado de salud del animal.
-
-Por otra parte, la disponibilidad de microcontroladores de alta capacidad, módulos de comunicación inalámbrica y sensores de precisión a precios accesibles representa una oportunidad para desarrollar soluciones tecnológicas que superen las limitaciones de los productos comerciales existentes. La Carrera de Especialización en Sistemas Embebidos de la FIUBA brindó las herramientas conceptuales y prácticas necesarias para llevar adelante un desarrollo de este tipo con rigor técnico y metodológico.
-
-\section{Objetivos y alcances}
+\section{Objetivos del trabajo}
 
 Este trabajo tuvo como objetivo desarrollar un prototipo funcional de un dispensador inteligente de alimento seco para gatos, basado en un microcontrolador STM32F446RE \cite{stm32f446re_datasheet}, que permita automatizar la entrega de comida en horarios programados, monitorear el consumo mediante el pesaje del plato y comunicar la información al usuario a través de Bluetooth.
 

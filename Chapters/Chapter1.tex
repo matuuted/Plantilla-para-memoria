@@ -58,29 +58,33 @@ En esta sección se presentan algunos productos disponibles en el mercado que ab
 PetSafe Smart Feed \cite{petsafe} es uno de los dispensadores automáticos para mascotas más difundidos en el mercado internacional. El dispositivo cuenta con conectividad Wi-Fi de 2,4 GHz y se gestiona mediante la aplicación móvil My PetSafe \cite{mypetsafe_app}, compatible con iOS y Android. Permite programar hasta doce raciones diarias con tamaños que van desde 1/8 de taza (29 ml) hasta 4 tazas (946 ml) por comida, y dispone de una capacidad de almacenamiento de 24 tazas (5 678 ml) de alimento seco o semihúmedo. La aplicación envía notificaciones ante nivel bajo de alimento, depósito vacío o pérdida de conectividad. La figura \ref{fig:petsafe} muestra el dispositivo, que se comercializa 
 a un precio de USD~120{,}69.
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=10cm, height=10cm]{./Figures/PETSAFE.png}
-	\caption{Dispensador automático PetSafe \textit{Smart Feed}.\protect\footnotemark}
-	\label{fig:petsafe}
-\end{figure}
-\footnotetext{\url{https://www.petsafe.com/es/p/alimentador-de-mascotas-automatico-e-inteligente-smart-feed/PFD19-16861/}}
-
 Sin embargo, el sistema no cuenta con ningún mecanismo de pesaje del plato, por lo que no es posible determinar si el animal consumió efectivamente el alimento entregado. El historial disponible en la aplicación refleja únicamente los eventos de dispensado, y el funcionamiento depende de manera permanente de una conexión a Internet.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=10cm, height=10cm]{./Figures/PETSAFE.png}
+    \caption[Dispensador automático PetSafe \textit{Smart Feed}]%
+            {Dispensador automático PetSafe \textit{Smart Feed}\protect\footnotemark.}
+    \label{fig:petsafe}
+\end{figure}
+\footnotetext{\url{https://www.petsafe.com/es/p/alimentador-de-mascotas-automatico-e-inteligente-smart-feed/PFD19-16861/}.}
 
 \subsection{PETLIBRO Granary Wi-Fi}
 
 El modelo PETLIBRO Granary \cite{petlibro} con conectividad Wi-Fi es un dispensador automático de alimento seco para gatos y mascotas de tamaño pequeño o mediano. Soporta redes de 2,4 GHz y 5 GHz, y permite configurar hasta diez comidas diarias con porciones ajustables de 20 ml, sobre una capacidad total de 5 litros. Su mecanismo de dispensado por paletas de distribución uniforme reduce la ocurrencia de atascos, y el sistema incorpora sellado cuádruple con bolsa desecante para preservar la frescura del alimento. Cuenta con batería de respaldo ante cortes de energía. La figura \ref{fig:petlibro} muestra el dispositivo, que se comercializa a un precio de USD~89{,}99 en el mercado estadounidense.
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=9cm, height=9cm]{./Figures/PETLIBRO.png}
-	\caption{Dispensador automático PETLIBRO \textit{Granary Smart Feeder}.\protect\footnotemark}
-	\label{fig:petlibro}
-\end{figure}
-\footnotetext{\url{https://petlibro.com/products/petlibro-5g-wifi-automatic-pet-feeder}}
-
 Al igual que el producto anterior, no incorpora un sistema de monitoreo del consumo real. El historial disponible en la aplicación registra únicamente los eventos de dispensado, sin ningún sensor que permita verificar si el animal ingirió efectivamente la ración entregada.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=9cm, height=9cm]{./Figures/PETLIBRO.png}
+    \caption[Dispensador automático PETLIBRO \textit{Granary Smart Feeder}]%
+            {Dispensador automático PETLIBRO \textit{Granary Smart Feeder}\protect\footnotemark.}
+    \label{fig:petlibro}
+\end{figure}
+\footnotetext{\url{https://petlibro.com/products/petlibro-5g-wifi-automatic-pet-feeder}.}
+
 
 \subsection{Análisis del estado del arte y aportes del desarrollo}
 
@@ -102,20 +106,25 @@ Pesaje del plato         & No            & No                   & Sí           
 Dependencia de Internet  & Permanente    & Permanente           & No requerida         \\
 Batería de respaldo      & No            & Sí                   & Sí                   \\
 Dispensado manual        & No informado  & No informado         & Sí (pulsador físico) \\
-Precio aproximado        & USD~120,69    & USD~89,99            & Bajo costo           \\
+Precio aproximado        & USD~120,69    & USD~89,99            & USD~65,00            \\
 \bottomrule
 \end{tabular}
 \label{tab:comparacion_estado_arte}
 \end{table}
 
-Entre los aportes descritos, el módulo de pesaje del plato representa el diferencial más significativo, ya que ninguno de los productos comerciales analizados es capaz de determinar si el animal consumió efectivamente el alimento entregado. La operación autónoma ante cortes de conectividad y el bajo costo de implementación con componentes disponibles en el mercado local complementan esta ventaja, configurando una solución con potencial de aplicación tanto doméstica como clínica.
+Entre los aportes descritos, el módulo de pesaje del plato representa el diferencial más significativo, ya que ninguno de los productos comerciales analizados es capaz de determinar si el animal consumió efectivamente el alimento entregado. La operación autónoma ante cortes de conectividad y el bajo costo de implementación con componentes disponibles en el mercado local complementan esta ventaja y conforman una solución con potencial de aplicación tanto doméstica como clínica.
 %----------------------------------------------------------------------------------------
 
 
 \section{Objetivos del trabajo}
 
-Este trabajo tuvo como objetivo desarrollar un prototipo funcional de un dispensador inteligente de alimento seco para gatos, basado en un microcontrolador STM32F446RE \cite{stm32f446re_datasheet}, que permita automatizar la entrega de comida en horarios programados, monitorear el consumo mediante el pesaje del plato y comunicar la información al usuario a través de Bluetooth.
+El objetivo del trabajo fue desarrollar un prototipo funcional de un dispensador 
+inteligente de alimento seco para gatos. Para ello se empleó el microcontrolador 
+STM32F446RE \cite{stm32f446re_datasheet}, con el fin de automatizar la entrega 
+de alimento en horarios programados, monitorear el consumo del animal mediante 
+el pesaje del plato y operar de forma autónoma ante cortes de conectividad o 
+energía eléctrica.
 
-El trabajo integró los conocimientos adquiridos en la Carrera de Especialización en Sistemas Embebidos de la FIUBA y abarcó el diseño del hardware, la implementación del firmware en lenguaje C sobre FreeRTOS y la validación del sistema mediante pruebas funcionales.
+Desde el punto de vista del hardware, se buscó integrar módulos de sensado, actuación y temporización que permitieran al sistema funcionar de manera continua y confiable, con capacidad de conservar la configuración ante ciclos de apagado y de responder tanto a eventos programados como a acciones manuales del usuario.
 
-Por otra parte, no forma parte de este trabajo el desarrollo de una aplicación móvil completa ni de una plataforma web. Tampoco se contempla el diseño definitivo de la estructura mecánica del dispositivo, ni su adaptación para uso comercial.
+En cuanto al software, el objetivo fue implementar un firmware estructurado sobre FreeRTOS que gestionara de forma concurrente el control del dispensado y la comunicación con el usuario. Esta comunicación se realizó mediante Bluetooth a través de una aplicación de escritorio que permitió configurar horarios, consultar el historial de eventos y ejecutar un dispensado manual.

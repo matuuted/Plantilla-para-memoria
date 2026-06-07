@@ -93,7 +93,7 @@ garantizar su correcto funcionamiento.
 \subsection{Gestión de alimentación}
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-En primera instancia, se debe resolver el requerimiento de alimentación del sistema. A diferencia de soluciones portátiles basadas en batería, el presente trabajo utiliza una fuente de alimentación de 12 V de corriente alterna como fuente de energía principal. Esta decisión se fundamenta en el elevado consumo del motor paso a paso NEMA 17 con su driver A4988, que en condiciones de máxima carga puede demandar hasta 2 A, lo que hace inviable el uso de una batería para una operación continua y prolongada.
+En primera instancia, se resolvió el requerimiento de alimentación del sistema. A diferencia de soluciones portátiles basadas en batería, el presente trabajo utiliza una fuente de alimentación de 12 V de corriente alterna como fuente de energía principal. Esta decisión se fundamenta en el elevado consumo del motor paso a paso NEMA 17 con su driver A4988, que en condiciones de máxima carga puede demandar hasta 2 A, lo que hace inviable el uso de una batería para una operación continua y prolongada.
 
 Dado que la totalidad de los componentes del sistema opera a una tensión nominal
 de 5~V, se incorporó un regulador de voltaje reductor (step-down) basado
@@ -102,9 +102,10 @@ hasta 35~V y entregar una corriente máxima de 3~A con tensión de salida
 ajustable. La figura~\ref{fig:conexion_alimentacion} ilustra su conexión con el
 microcontrolador.
 
+\vspace{-0.4cm}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{./Figures/conexion_alimentacion.png}
+    \includegraphics[width=0.95\textwidth]{./Figures/conexion_alimentacion.png}
     \caption{Interconexión entre la fuente de alimentación y el microcontrolador.}
     \label{fig:conexion_alimentacion}
 \end{figure}
@@ -114,6 +115,7 @@ microcontrolador.
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Interconexión de componentes}
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\label{sec:interconexion_componentes}
 
 Una vez presentados los componentes del sistema en el capítulo anterior, se
 describe a continuación cómo se interconectan entre sí. Todos los módulos operan
@@ -121,26 +123,27 @@ a una tensión nominal de 5~V, por lo que comparten la misma fuente de
 alimentación.
 
 El microcontrolador STM32F446RE se comunica con los dos módulos HX711 mediante
-señales digitales GPIO. Cada módulo HX711 emplea una interfaz de dos cables: uno
+señales digitales GPIO (\textit{General Purpose Input/Output}). Cada módulo HX711 emplea una interfaz de dos cables: uno
 de reloj (CLK) y uno de datos (DATA), conectados a pines GPIO del
 microcontrolador configurados como salida y entrada respectivamente. El módulo
-DS3231 se conecta al microcontrolador a través del bus I$^2$C, utilizando las
-líneas SCL y SDA del periférico I2C1, configurado a 400~kHz. El módulo ESP32 se
-conecta mediante el periférico UART4, configurado a 115.200 baudios con formato
+DS3231 se conecta al microcontrolador a través del bus I$^2$C, por medio de las líneas SCL y SDA del periférico I2C1, configurado a 400~kHz. El módulo ESP32 se
+conecta mediante el periférico UART4, configurado a 115~200 baudios con formato
 8N1. El pulsador de dispensado manual se conecta a un pin configurado como
 entrada con interrupción externa (EXTI), con un tiempo de antirrebote de 200~ms
 implementado por software. El LED de estado se conecta a una salida GPIO de
 propósito general. La figura~\ref{fig:conexion_perifericos} muestra el esquema de
 estas conexiones.
 
+\vspace{-0.4cm}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{./Figures/conexion_perifericos.png}
-    \caption{Interconexión entre el microcontrolador y sus periféricos.}
+    \includegraphics[width=0.95\textwidth]{./Figures/conexion_perifericos.png}
+    \caption{Esquema de conexiones del microcontrolador.}
     \label{fig:conexion_perifericos}
 \end{figure}
 
-\vspace{-0.4cm}
+\vspace{-0.5cm}
 
 El motor paso a paso NEMA~17 se controla a través del driver A4988, que recibe tres señales digitales provenientes del microcontrolador. La señal \texttt{STEP}, generada por el canal~3 del temporizador \texttt{TIM2} en modo PWM sobre el pin \texttt{PB10}, determina la velocidad y el número de pasos ejecutados por el motor. La señal \texttt{DIR} define el sentido de giro, mientras que la señal \texttt{ENABLE} habilita o deshabilita el driver. Las señales \texttt{DIR} y \texttt{ENABLE} se manejan como salidas GPIO simples. La figura~\ref{fig:conexion_motor} ilustra el esquema de conexión entre el microcontrolador, el driver y el motor.
 
@@ -148,7 +151,7 @@ El motor paso a paso NEMA~17 se controla a través del driver A4988, que recibe 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{./Figures/conexion_motor.png}
+    \includegraphics[width=0.95\textwidth]{./Figures/conexion_motor.png}
     \caption{Interconexión entre el microcontrolador, el driver A4988 y el motor NEMA~17.}
     \label{fig:conexion_motor}
 \end{figure}
@@ -205,7 +208,7 @@ En esta sección se describe la organización del firmware desarrollado para el 
 \subsection{Organización del firmware}
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Para implementar la lógica del trabajo, se desarrollaron módulos de software de
+Para implementar la lógica del sistema, se desarrollaron módulos de software de
 forma independiente, con el propósito de que su desarrollo fuera autónomo y para
 facilitar su integración. La figura~\ref{fig:diagrama_software} muestra el diagrama
 en bloques que representa los subsistemas que conforman el firmware.
@@ -226,17 +229,10 @@ comunicación con el usuario.
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo orquestador}
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\label{sec:modulo_orquestador}
 
 El módulo orquestador gestiona el ciclo completo de operación del dispensador
-mediante una máquina de estados finita. La figura~\ref{fig:estados} presenta el
-diagrama de estados del sistema.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{./Figures/diagrama_estados.png}
-    \caption{Diagrama de estados del dispensador.}
-    \label{fig:estados}
-\end{figure}
+mediante una máquina de estados finita.
 
 El estado \texttt{ST\_INIT} corresponde a la inicialización del sistema: se
 configuran los periféricos, se establece la comunicación con los módulos HX711 y
@@ -252,7 +248,15 @@ ocurrencia de un horario programado o de una pulsación manual. Cuando se detect
 el evento \texttt{EVT\_BUTTON} o \texttt{EVT\_SCHEDULED\_FEED}, el sistema
 transita al estado \texttt{ST\_DISPENSING}, donde activa el motor, notifica al
 usuario y aguarda la confirmación del ciclo. Al completarse el dispensado, retorna
-a \texttt{ST\_IDLE}.
+a \texttt{ST\_IDLE}. La figura~\ref{fig:estados} presenta el
+diagrama de estados del sistema.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{./Figures/diagrama_estados.png}
+    \caption{Diagrama de estados del dispensador.}
+    \label{fig:estados}
+\end{figure}
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo de periféricos}
@@ -349,10 +353,11 @@ sencilla con la aplicación de escritorio. La figura~\ref{fig:arquitectura_comm}
 ilustra la arquitectura de comunicación del sistema junto con los mensajes
 intercambiados.
 
+\vspace{-0.2cm}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{./Figures/dispensador_arquitectura.png}
-    \caption{Arquitectura de comunicación del sistema de dispensado.}
+    \includegraphics[width=1\textwidth]{./Figures/dispensador_arquitectura.png}
+    \caption{Arquitectura de comunicación del sistema.}
     \label{fig:arquitectura_comm}
 \end{figure}
 
@@ -389,7 +394,7 @@ aplicación con el contenido de cada pantalla.
 
 \vspace{-0.4cm}
 
-La pantalla de inicio muestra el \emph{dashboard} principal con los valores de
+La pantalla de inicio muestra el dashboard principal con los valores de
 peso actualizados en tiempo real y el estado de la última alimentación registrada.
 La pantalla de horarios permite consultar y gestionar los horarios programados. La pantalla de historial presenta el registro completo de eventos de dispensado con fecha, hora y cantidad. La pantalla de vinculación facilita el proceso de conexión Bluetooth con el dispositivo. Finalmente, la pantalla de
 ajustes permite configurar el perfil de la mascota y los parámetros generales de la

@@ -134,7 +134,7 @@ en el integrado LM2596S~\cite{LM2596S}, capaz de aceptar tensiones de entrada de
 hasta 35~V y entregar una corriente máxima de 3~A con tensión de salida
 ajustable. 
 
-Este integrado se seleccionó frente a otras alternativas de regulación debido a su mayor eficiencia energética. Al operar como convertidor conmutado, disipa significativamente menos potencia en forma de calor que un regulador lineal equivalente, lo cual resulta especialmente relevante dada la diferencia entre la tensión de entrada (12~V) y la tensión de salida requerida (5~V). Esta eficiencia evita la necesidad de disipadores de gran tamaño y reduce el riesgo de sobrecalentamiento durante la operación continua del sistema.
+Este integrado se seleccionó frente a otras alternativas de regulación debido a su mayor eficiencia energética. Al operar como convertidor conmutado, disipa significativamente menos potencia en forma de calor que un regulador lineal equivalente. Esa menor disipación resulta especialmente relevante dada la diferencia entre la tensión de entrada (12~V) y la tensión de salida requerida (5~V). De esta manera, se evita la necesidad de disipadores de gran tamaño y se reduce el riesgo de sobrecalentamiento durante la operación continua del sistema.
 
 La salida del módulo se ajustó mediante su potenciómetro integrado hasta alcanzar
 los 5~V requeridos por los componentes del sistema, valor que se verificó con un
@@ -292,6 +292,18 @@ máquina de estados. Para ello se utilizó FreeRTOS, con dos
 tareas principales: una encargada del control del dispensado y otra dedicada a la
 comunicación con el usuario.
 
+La elección de un sistema operativo de tiempo real en lugar de un esquema de
+bucle principal único respondió a la necesidad de atender dos actividades de
+naturaleza distinta sin que una bloqueara a la otra. El control del dispensado
+exige un ciclo determinista que consulte los sensores y el reloj de tiempo real,
+mientras que la comunicación permanece a la espera de mensajes que llegan de
+forma asíncrona desde la aplicación. FreeRTOS permitió asignar
+cada actividad a una tarea independiente con su propia prioridad y delegar en
+el planificador la conmutación entre ambas. Esta separación simplificó el diseño
+y evitó las máquinas de estado anidadas que habría requerido una solución basada
+en un único bucle con sondeo permanente.
+
+\newpage
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo orquestador}
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -329,7 +341,7 @@ ciclo de dispensado, que puede iniciarse por dos vías: mediante el comando
 \texttt{dispense} recibido desde la aplicación o de forma autónoma. En el primer
 caso, \texttt{CommTask} traduce el comando en el evento \texttt{EVT\_BUTTON} y lo
 publica en la cola de eventos. En el segundo, \texttt{SMTask} detecta durante el
-\textit{polling} periódico de \texttt{ST\_IDLE} que la hora provista por el DS3231
+polling periódico de \texttt{ST\_IDLE} que la hora provista por el DS3231
 coincide con un horario programado y genera internamente el evento
 \texttt{EVT\_SCHEDULED}.
 
@@ -367,6 +379,7 @@ Al reiniciar el microcontrolador, se ejecuta nuevamente la secuencia completa de
 inicialización, lo que permite recuperarse de fallas transitorias de comunicación
 I\textsuperscript{2}C con el RTC sin intervención manual.
 
+\newpage
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo de periféricos}
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -408,7 +421,7 @@ Durante el estado \texttt{ST\_INIT}, el módulo ejecuta una tara automática que
 establece el valor de referencia de reposo de cada celda. A partir de ese
 punto, las lecturas de peso se obtienen mediante la aplicación de un factor de
 calibración sobre la diferencia entre el valor digital de 24~bits provisto por el
-HX711 y dicho \textit{offset} de tara, y el resultado se expresa en gramos.
+HX711 y dicho offset de tara, y el resultado se expresa en gramos.
 
 El factor de calibración se determinó experimentalmente. Se pesó un objeto de
 referencia en una balanza doméstica para obtener su masa real y luego se contrastó
@@ -437,6 +450,12 @@ no vuelve a dispararlo hasta el minuto siguiente.
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 El módulo de gestión de almacenamiento tiene como función conservar la configuración del sistema a través de los ciclos de encendido y apagado. Los horarios de dispensado se almacenan en la memoria flash interna del microcontrolador STM32F446RE, lo que permite recuperarlos ante un eventual reinicio del sistema.
+
+Se optó por la memoria flash interna del microcontrolador en lugar de una memoria
+externa dedicada, dado que el volumen de configuración a conservar es reducido y
+no justifica el costo ni el espacio de un componente adicional. Esta decisión
+aprovechó un recurso ya disponible en el STM32F446RE y simplificó el diseño del
+circuito, sin líneas de comunicación ni componentes extra.
 
 El sistema admite hasta diez horarios programados. Cada entrada incluye la hora
 (0–23), los minutos (0–59), un indicador de habilitación y una etiqueta de texto
@@ -469,7 +488,13 @@ comunicación es bidireccional y se estructura en dos tipos de mensajes: los
 mensajes salientes, que el sistema envía hacia la aplicación, y los comandos
 entrantes, que la aplicación envía hacia el sistema. Todos los mensajes se
 estructuran en formato \texttt{JSON}~\cite{JSON}, lo que permite una integración
-sencilla con la aplicación de escritorio. La figura~\ref{fig:arquitectura_comm}
+sencilla con la aplicación de escritorio. 
+
+Se adoptó el formato \texttt{JSON} en lugar de un protocolo binario propio por su legibilidad y por la disponibilidad de bibliotecas de análisis sintáctico tanto en el firmware como en la aplicación de escritorio. Esta característica
+facilitó la depuración durante el desarrollo, ya que los mensajes resultan
+interpretables de forma directa en un monitor serie. El reducido volumen de
+datos intercambiado torna despreciable la diferencia de eficiencia frente a una
+codificación binaria. La figura~\ref{fig:arquitectura_comm}
 ilustra la arquitectura de comunicación del sistema junto con los mensajes
 intercambiados.
 
@@ -487,7 +512,27 @@ El sistema transmite dos tipos de mensajes hacia la aplicación. El primero es u
 entrantes, la aplicación puede solicitar un dispensado manual mediante
 \texttt{manual\_feed}, ejecutar la tara de las celdas de carga mediante
 \texttt{tare}, o actualizar los horarios programados mediante
-\texttt{set\_schedules}.
+\texttt{set\_schedules}. La tabla~\ref{tab:tramas} detalla la estructura de los mensajes intercambiados
+entre el sistema y la aplicación, con los campos que componen cada uno.
+
+\begin{table}[H]
+\centering
+\caption{Estructura de los mensajes del protocolo de comunicación.}
+\label{tab:tramas}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} l >{\raggedright\arraybackslash}p{5.5cm}}
+\toprule
+\textbf{Mensaje} & \textbf{Dirección} & \textbf{Campos principales} \\
+\midrule
+Telemetría & Sistema $\rightarrow$ App & Peso del tanque, peso del plato, fecha y hora \\
+Dispensado completado & Sistema $\rightarrow$ App & Cantidad dispensada, tipo de dispensado, hora del evento \\
+Confirmación de tara & Sistema $\rightarrow$ App & Resultado de la tara de ambas celdas \\
+Dispensado manual & App $\rightarrow$ Sistema & Solicitud de dispensado inmediato \\
+Tara remota & App $\rightarrow$ Sistema & Solicitud de tara de las celdas de carga \\
+Actualización de horarios & App $\rightarrow$ Sistema & Lista de horarios con hora, minuto y estado \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Interfaz de usuario}
@@ -507,14 +552,24 @@ La pantalla de inicio muestra el dashboard principal con los valores de
 peso actualizados en tiempo real y el estado de la última alimentación registrada.
 La pantalla de horarios permite consultar y gestionar los horarios programados. La pantalla de historial presenta el registro completo de eventos de dispensado con fecha, hora y cantidad. La pantalla de vinculación facilita el proceso de conexión Bluetooth con el dispositivo. Finalmente, la pantalla de
 ajustes permite configurar el perfil de la mascota y los parámetros generales de la
-aplicación. La figura~\ref{fig:sitemap_app} presenta el diagrama de navegación de la
+aplicación. 
+
+La elección de Flutter como entorno de desarrollo respondió a su capacidad de
+generar aplicaciones de escritorio a partir de una única base de código, junto
+con la disponibilidad de bibliotecas para la gestión de la conexión Bluetooth y
+la construcción de interfaces gráficas. Esta característica permitió concentrar
+el esfuerzo de desarrollo en la lógica de la aplicación y en la experiencia de
+usuario, en lugar de la programación de bajo nivel de la interfaz.
+
+La figura~\ref{fig:sitemap_app} presenta el diagrama de navegación de la
 aplicación con el contenido de cada pantalla.
 
+\vspace{0.5cm}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{./Figures/sitemap_app.png}
-    \caption{Diagrama de navegación de la aplicación de escritorio.}
+    \caption{Diagrama de navegación de la aplicación.}
     \label{fig:sitemap_app}
 \end{figure}
 
@@ -530,7 +585,7 @@ FreeRTOS y los componentes físicos del sistema.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{./Figures/diagrama_freertos.png}
-    \caption{Diagrama de integración hardware-software del sistema.}
+    \caption{Diagrama de integración hardware-software.}
     \label{fig:integracion_hw_sw}
 \end{figure}
 
@@ -575,7 +630,7 @@ notifica a la aplicación mediante \texttt{Comm\_SendTareDone()}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{./Figures/secuencia_tara.png}
+    \includegraphics[width=1\textwidth]{./Figures/secuencia_tara.png}
     \caption{Diagrama de secuencia de la operación de tara remota.}
     \label{fig:secuencia_tara}
 \end{figure}

@@ -1,7 +1,7 @@
 \chapter{Ensayos y resultados}
 
 En este capítulo se describen las pruebas realizadas para validar el correcto
-funcionamiento del sistema desarrollado. A continuación se detallan los ensayos de hardware, de firmware y de integración,
+funcionamiento del sistema desarrollado. A continuación, se detallan los ensayos de hardware, de firmware y de integración,
 y finalmente se expone un análisis crítico de los resultados obtenidos.
 
 % ─────────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ ensayos de integración con el prototipo completo en operación, donde se
 evaluaron los escenarios de uso real del sistema.
 
 Todos los ensayos se realizaron sobre el circuito ensamblado en una placa de
-pruebas (\textit{protoboard}) mediante cables de conexión tipo \textit{jumper},
+pruebas (protoboard) mediante cables de conexión tipo jumper,
 lo que simuló las condiciones del entorno de trabajo previsto.
 
 \subsection{Instrumentos utilizados}
@@ -39,7 +39,7 @@ siguientes:
     señales PWM, I\textsuperscript{2}C y UART.
     \item Multímetro digital, empleado para la medición de tensiones de
     alimentación y verificación de continuidad en el cableado.
-    \item Terminal serie (\textit{software}), utilizada para registrar los valores
+    \item Terminal serie (software), utilizada para registrar los valores
     transmitidos por el microcontrolador a través del puerto UART.
     \item Masas de referencia calibradas, empleadas para la validación del sistema
     de pesaje.
@@ -120,20 +120,20 @@ criterio de aceptación establecido.
 \subsection{Motor paso a paso NEMA~17 y driver A4988}
 
 La verificación del mecanismo de dispensado se realizó sobre el montaje del motor
-NEMA~17 con el \textit{driver} A4988, alimentado a 12~V. Con el analizador lógico
+NEMA~17 con el driver A4988, alimentado a 12~V. Con el analizador lógico
 se capturó la señal STEP generada por el canal~3 del temporizador TIM2 en modo PWM
 sobre el pin PB10, y se verificó que la forma de onda correspondiera a la
-frecuencia configurada por \textit{software}. Las señales GPIO DIR y ENABLE se
+frecuencia configurada por software. Las señales GPIO DIR y ENABLE se
 verificaron con el multímetro, y se confirmaron los niveles lógicos correctos en cada
 estado.
 
 Se evaluaron tres condiciones: la rotación en sentido horario y antihorario
 mediante el cambio de estado de la señal DIR, la habilitación y deshabilitación
-del \textit{driver}, y la variación de la frecuencia de la señal STEP para
+del driver, y la variación de la frecuencia de la señal STEP para
 comprobar el rango de velocidades.
 
 El motor respondió correctamente en todo el rango de velocidades ensayado.
-No se detectó pérdida de pasos ni calentamiento excesivo del \textit{driver}
+No se detectó pérdida de pasos ni calentamiento excesivo del driver
 en operación normal, por lo que se consideró superado el criterio de aceptación
 correspondiente.
 
@@ -155,7 +155,7 @@ Se comprobaron los siguientes aspectos:
 
 La figura~\ref{fig:prueba_rtc} presenta la
 captura del analizador lógico sobre el bus I\textsuperscript{2}C durante una
-lectura del DS3231. Se observa la dirección del dispositivo (0x68) en las
+lectura del DS3231. Se observa la dirección del dispositivo (\texttt{0x68}) en las
 operaciones de escritura y lectura, junto con los registros de fecha y hora
 codificados en BCD. El último byte se transmite con un NAK del maestro, lo que
 corresponde al cierre normal de una lectura I\textsuperscript{2}C y confirma el
@@ -178,7 +178,7 @@ Para validar el pulsador, se configuró el pin de entrada del STM32F446RE con
 interrupción externa (EXTI). Con el analizador lógico se capturó la señal en el pin
 de entrada durante el accionamiento, lo que permitió caracterizar el rebote
 mecánico del contacto y confirmar que el tiempo de antirrebote de 200~ms
-implementado por \textit{software} resultó suficiente para suprimirlo.
+implementado por software resultó suficiente para suprimirlo.
 
 Se registraron 50 pulsaciones consecutivas en diferentes intervalos de tiempo.
 En todos los casos se generó exactamente un evento de interrupción por
@@ -199,10 +199,9 @@ respondieron conforme a lo especificado.
 \label{sec:ensayos_fw}
 % ─────────────────────────────────────────────────────────────────
 
-En esta sección se presentan las pruebas de las funciones de \textit{software}:
+En esta sección se presentan las pruebas de las funciones de software:
 el comportamiento de la máquina de estados, la gestión de tareas concurrentes
-bajo FreeRTOS y el protocolo de comunicación, junto con la verificación del
-\textit{timing} de los mensajes de telemetría.
+bajo FreeRTOS y el protocolo de comunicación, junto con la verificación del timing de los mensajes de telemetría.
 
 \subsection{Máquina de estados y módulo orquestador}
 
@@ -251,9 +250,9 @@ Se comprobó que la cola de mensajes \texttt{xQueueHandle} cumplió su función
 de sincronización entre ambas tareas, sin pérdida de eventos ni bloqueos. Durante todo el período de observación, el planificador de FreeRTOS ejecutó ambas
 tareas con regularidad, sin que ninguna dejara de recibir tiempo de procesamiento.
 
-\subsection{Protocolo de comunicación y \textit{timing} de telemetría}
+\subsection{Protocolo de comunicación y timing de telemetría}
 
-Se verificó el protocolo de comunicación JSON entre el microcontrolador y la
+Se verificó el protocolo de comunicación \texttt{JSON} entre el microcontrolador y la
 aplicación de escritorio. Para ello se conectó el ESP32 al STM32 mediante UART4,
 configurado a 115\,200 baudios con formato 8N1, y se registraron los mensajes
 intercambiados durante una sesión de uso mediante el monitor serie de PlatformIO.
@@ -274,7 +273,7 @@ temporal correspondientes.
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{./Figures/prueba_bt.png}
-    \caption{Registro de la comunicación JSON entre la aplicación y el microcontrolador.}
+    \caption{Registro de la comunicación \texttt{JSON} entre la aplicación y el microcontrolador.}
     \label{fig:prueba_bt}
 \end{figure}
 
@@ -289,11 +288,11 @@ intercambiados durante las pruebas.
 % ─────────────────────────────────────────────────────────────────
 
 En esta sección se presentan las pruebas del sistema completo con todos los
-módulos interconectados y el firmware operando bajo FreeRTOS. Se describen
+módulos interconectados y el firmware integrado con FreeRTOS. Se describen
 los escenarios evaluados y los resultados obtenidos.
 
 Una vez superadas las pruebas individuales, se procedió a la integración del
-sistema completo sobre la \textit{protoboard}, con todos los componentes
+sistema completo sobre la protoboard, con todos los componentes
 interconectados según el esquema de la sección~\ref{sec:interconexion_componentes}.
 
 La tabla~\ref{tab:integracion} resume los escenarios evaluados, el resultado
@@ -320,7 +319,7 @@ esperado y el resultado obtenido para cada caso.
         Tara ejecutada y confirmada por terminal &
         Conforme \\
         Actualización de horarios desde la aplicación &
-        Nuevos horarios almacenados en \textit{flash} y activos &
+        Nuevos horarios almacenados en flash y activos &
         Conforme \\
         Corte y restitución de alimentación eléctrica &
         Hora conservada en el DS3231 y sistema retomado &
@@ -382,7 +381,7 @@ Todos los criterios de aceptación definidos en la sección~\ref{sec:plan_ensayo
 y resumidos en la tabla~\ref{tab:criterios} se cumplieron satisfactoriamente.
 El sistema de pesaje alcanzó la resolución requerida de 2~g,
 el motor operó sin pérdida de pasos en el rango de velocidades previsto, la hora
-se conservó ante cortes de energía, y la comunicación JSON no presentó errores
+se conservó ante cortes de energía, y la comunicación \texttt{JSON} no presentó errores
 en ninguna de las sesiones de prueba.
 
 \newpage
@@ -398,7 +397,7 @@ Durante los ensayos se identificaron las siguientes limitaciones del prototipo:
     \item El alcance efectivo del enlace Bluetooth Classic en el entorno de prueba
     fue de aproximadamente 8~m en línea de visión directa, lo que podría
     representar una limitación en viviendas de gran superficie.
-    \item El ensamblado sobre \textit{protoboard} con cables \textit{jumper}
+    \item El ensamblado sobre protoboard con cables jumper
     introduce capacitancias parásitas y resistencias de contacto que no estarían presentes en un diseño con placa de circuito impreso (PCB), por lo que los
     resultados de consumo de corriente deben interpretarse como valores
     aproximados.

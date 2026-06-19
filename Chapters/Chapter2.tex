@@ -11,7 +11,7 @@ En esta sección se describen los componentes electrónicos y módulos que confo
 
 El microcontrolador empleado fue el modelo STM32F446RE de STMicroelectronics, que gestionó el dispensado de alimento, la lectura de sensores y la comunicación con los módulos periféricos.
 
-Se seleccionó el STM32F446RE por su capacidad de procesamiento, su frecuencia de trabajo de hasta 180 MHz y su variedad de interfaces de comunicación, entre ellas UART \cite{uart_spec} ({\it{Universal Asynchronous Receiver-Transmitter}}) e I\textsuperscript{2}C \cite{i2c_spec} ({\it{Inter-Integrated Circuit}}), que permitieron integrar en un único dispositivo el control del dispensado, la lectura de sensores y la comunicación con módulos periféricos. Su compatibilidad con FreeRTOS facilitó además la organización del firmware en tareas concurrentes.
+Se seleccionó el STM32F446RE por su capacidad de procesamiento, su frecuencia de trabajo de hasta 180 MHz y su variedad de interfaces de comunicación, entre ellas UART \cite{uart_spec} ({\it{Universal Asynchronous Receiver-Transmitter}}) e I\textsuperscript{2}C \cite{i2c_spec} ({\it{Inter-Integrated Circuit}}). Estas interfaces permitieron consolidar en un solo dispositivo las funciones de control del dispensado, lectura de sensores y comunicación con los módulos periféricos. Su compatibilidad con FreeRTOS facilitó además la organización del firmware en tareas concurrentes.
 
 Para el desarrollo de este trabajo se utilizó la placa de evaluación Nucleo-F446RE \cite{nucleo_f446re}, que puede observarse en la figura \ref{fig:nucleo} y que integra el módulo ST-LINK necesario para la programación y depuración del microcontrolador.
 

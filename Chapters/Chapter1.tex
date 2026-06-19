@@ -45,7 +45,7 @@ En el área específica del cuidado de mascotas, esta tendencia se traduce en di
 
 La motivación principal de este trabajo surge de la necesidad de contar con un sistema de alimentación para gatos que no solo automatice la entrega de comida, sino que también brinde información confiable sobre el comportamiento alimenticio de la mascota. Esta información resulta valiosa tanto para el propietario como para el veterinario, ya que permite detectar anomalías en el consumo que podrían indicar alteraciones en el estado de salud del animal.
 
-Por otra parte, la disponibilidad de microcontroladores de alta capacidad, módulos de comunicación inalámbrica y sensores de precisión a precios accesibles representa una oportunidad para desarrollar soluciones tecnológicas que superen las limitaciones de los productos comerciales existentes. La Carrera de Especialización en Sistemas Embebidos de la FIUBA brindó las herramientas conceptuales y prácticas necesarias para llevar adelante un desarrollo de este tipo con rigor técnico y metodológico.
+Por otra parte, la disponibilidad de microcontroladores de alta capacidad, módulos de comunicación inalámbrica y sensores de precisión a precios accesibles representa una oportunidad para desarrollar soluciones tecnológicas que superen las limitaciones de los productos comerciales existentes, particularmente en lo que respecta a la incorporación de mecanismos de monitoreo del consumo real del alimento. Este aspecto resulta fundamental para satisfacer la necesidad planteada de obtener información confiable sobre los hábitos alimenticios de la mascota.
 
 %----------------------------------------------------------------------------------------
 
@@ -118,13 +118,12 @@ Entre los aportes descritos, el módulo de pesaje del plato representa el difere
 
 \section{Objetivos del trabajo}
 
-El objetivo del trabajo fue desarrollar un prototipo funcional de un dispensador 
-inteligente de alimento seco para gatos. Para ello se empleó el microcontrolador 
-STM32F446RE \cite{stm32f446re_datasheet}, con el fin de automatizar la entrega 
-de alimento en horarios programados, monitorear el consumo del animal mediante 
-el pesaje del plato y operar de forma autónoma ante cortes de conectividad o 
-energía eléctrica.
+El objetivo del trabajo es desarrollar un prototipo funcional de un dispensador inteligente de alimento seco para gatos, capaz de automatizar la entrega de alimento en horarios programados, registrar el consumo real del animal mediante un sistema de pesaje y operar de forma autónoma ante cortes de conectividad o energía eléctrica. Es un dispositivo orientado a propietarios de gatos que deseen automatizar la alimentación de su mascota y obtener información confiable sobre sus hábitos de consumo. Para ello, el sistema debe satisfacer las siguientes necesidades:
 
-Desde el punto de vista del hardware, se buscó integrar módulos de sensado, actuación y temporización que permitieran al sistema funcionar de manera continua y confiable, con capacidad de conservar la configuración ante ciclos de apagado y de responder tanto a eventos programados como a acciones manuales del usuario.
-
-En cuanto al software, el objetivo fue implementar un firmware estructurado sobre FreeRTOS que gestionara de forma concurrente el control del dispensado y la comunicación con el usuario. Esta comunicación se realizó mediante Bluetooth a través de una aplicación de escritorio que permitió configurar horarios, consultar el historial de eventos y ejecutar un dispensado manual.
+\begin{itemize}
+    \item Automatizar la entrega de alimento en horarios programados.
+    \item Registrar el consumo real del animal mediante el pesaje del plato.
+    \item Operar de forma autónoma ante cortes de conectividad o energía eléctrica.
+    \item Permitir la configuración de horarios y la consulta del historial de eventos por parte del usuario.
+    \item Permitir un dispensado manual mediante acción del usuario.
+\end{itemize}

@@ -211,6 +211,7 @@
 \addbibresource{references.bib} % The filename of the bibliography
 
 \urlstyle{same}
+\usepackage{xurl}
 \hyphenation{biblatex}
 
 \RequirePackage[

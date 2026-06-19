@@ -58,28 +58,61 @@ El componente central del sistema es el microcontrolador STM32F446RE, que actúa
 como unidad de procesamiento principal. Este componente coordina la lectura de
 los sensores de pesaje, controla el motor de dispensado y administra la
 comunicación con los módulos periféricos. La figura~\ref{fig:diagrama_bloques}
-presenta el diagrama en bloques del sistema, donde se distinguen tres bloques
-funcionales principales: sensado, control y comunicación con el usuario.
+presenta el diagrama en bloques del sistema, donde se distinguen cuatro bloques
+funcionales principales: sensado, control, actuación y comunicación con el usuario.
 
+\vspace{0.5cm}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{./Figures/diagrama_bloques.png}
+    \includegraphics[width=1\textwidth]{./Figures/diagrama_bloques.png}
     \caption{Diagrama en bloques del sistema.}
     \label{fig:diagrama_bloques}
 \end{figure}
 
-El bloque de sensado comprende dos módulos HX711 conectados a sus respectivas
-celdas de carga: uno ubicado bajo el tanque de almacenamiento y otro bajo el
-plato. A estos se suma el módulo DS3231, que provee la referencia temporal
-necesaria para la gestión autónoma de los horarios de dispensado.
+\newpage
 
-El bloque de control concentra toda la lógica de la aplicación en el
-microcontrolador, e incorpora también el motor paso a paso NEMA~17 con su
-driver A4988, el pulsador de dispensado manual y el LED de estado del sistema.
+\subsection{Bloque de sensado}
 
-El bloque de comunicación con el usuario está compuesto por el módulo ESP32,
-que opera como puente entre el microcontrolador y la aplicación de escritorio
-desarrollada en Flutter, a través de Bluetooth Classic.
+El bloque de sensado comprende dos módulos HX711 conectados a sus respectivas celdas de carga: uno ubicado bajo el tanque de almacenamiento y otro bajo el plato. Cada módulo entrega al microcontrolador una lectura digital de 24~bits proporcional al peso ejercido sobre la celda correspondiente, lo que permite estimar tanto la cantidad de alimento disponible como la porción efectivamente consumida por el animal.
+
+A este bloque se suma el módulo DS3231, que provee la referencia temporal necesaria para la gestión autónoma de los horarios de dispensado. La disponibilidad de esta referencia de tiempo independiente de una conexión a Internet permite que el sistema mantenga la programación de horarios aun ante cortes de energía o de conectividad.
+
+\subsection{Bloque de control}
+
+El bloque de control está compuesto por el microcontrolador STM32F446RE, que concentra toda la lógica del sistema. Este componente recibe la información provista por el bloque de sensado y, en función de ella y de los comandos recibidos desde la aplicación, determina las acciones a ejecutar por el bloque de actuación.
+
+La información ingresa al microcontrolador a través de distintas interfaces según
+el periférico: las lecturas de peso de los módulos HX711 mediante señales digitales
+GPIO, la referencia temporal del DS3231 a través del bus I\textsuperscript{2}C, los
+comandos del usuario por la interfaz UART con el módulo de comunicación y el
+pulsador manual mediante una interrupción externa. A partir de estas entradas, el
+microcontrolador convierte los datos crudos en información útil: las lecturas de los
+HX711 se transforman en valores de peso en gramos y la hora del DS3231 se compara
+con los horarios programados para decidir cuándo activar el dispensado. El detalle
+de las interfaces y la asignación de pines se presenta en la
+sección~\ref{sec:interconexion_componentes}.
+
+\subsection{Bloque de actuación}
+
+El bloque de actuación está compuesto por el motor paso a paso NEMA~17 con su driver A4988, el pulsador de dispensado manual y el LED de estado del sistema. El motor ejecuta el dispensado de alimento según las órdenes del bloque de control, mientras que el LED de estado y el pulsador permiten al usuario interactuar directamente con el dispositivo sin depender de la aplicación de escritorio, ya sea para visualizar el estado del sistema o para ejecutar un dispensado manual.
+
+\subsection{Bloque de comunicación con el usuario}
+
+El bloque de comunicación con el usuario está compuesto por el módulo ESP32, que opera como puente entre el microcontrolador y la aplicación de escritorio, a través de Bluetooth Classic. Este bloque es responsable de transmitir la telemetría del sistema, notificar los eventos de dispensado y recibir los comandos enviados por el usuario desde la aplicación.
+
+\newpage
+\subsection{Interacción entre hardware y software}
+
+La figura~\ref{fig:diagrama_capas} presenta el diagrama de capas del sistema, donde se observa la relación entre los componentes de hardware descritos y los módulos de firmware encargados de gestionarlos. El firmware se organiza en torno a dos tareas concurrentes de FreeRTOS: una dedicada al control del dispensado, que interactúa directamente con los módulos HX711, DS3231, el motor NEMA~17 y el pulsador; y otra dedicada a la comunicación, que gestiona el intercambio de mensajes con la aplicación de escritorio a través del módulo ESP32. Ambas tareas se sincronizan mediante una cola de mensajes, lo que permite que el procesamiento de comandos externos no interfiera con el ciclo de control del hardware.
+
+\vspace{0.5cm}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{./Figures/diagrama_capas.png}
+    \caption{Diagrama de capas hardware-software del sistema.}
+    \label{fig:diagrama_capas}
+\end{figure}
 
 %-----------------------------------------------------------------------------
 \section{Arquitectura de hardware}
@@ -99,10 +132,16 @@ Dado que la totalidad de los componentes del sistema opera a una tensión nomina
 de 5~V, se incorporó un regulador de voltaje reductor (step-down) basado
 en el integrado LM2596S~\cite{LM2596S}, capaz de aceptar tensiones de entrada de
 hasta 35~V y entregar una corriente máxima de 3~A con tensión de salida
-ajustable. La figura~\ref{fig:conexion_alimentacion} ilustra su conexión con el
-microcontrolador.
+ajustable. 
 
-\vspace{-0.4cm}
+Este integrado se seleccionó frente a otras alternativas de regulación debido a su mayor eficiencia energética. Al operar como convertidor conmutado, disipa significativamente menos potencia en forma de calor que un regulador lineal equivalente, lo cual resulta especialmente relevante dada la diferencia entre la tensión de entrada (12~V) y la tensión de salida requerida (5~V). Esta eficiencia evita la necesidad de disipadores de gran tamaño y reduce el riesgo de sobrecalentamiento durante la operación continua del sistema.
+
+La salida del módulo se ajustó mediante su potenciómetro integrado hasta alcanzar
+los 5~V requeridos por los componentes del sistema, valor que se verificó con un
+multímetro antes de conectar el resto de los módulos. La figura~\ref{fig:conexion_alimentacion} ilustra su conexión con el microcontrolador.
+
+\vspace{0.5cm}
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{./Figures/conexion_alimentacion.png}
@@ -110,7 +149,7 @@ microcontrolador.
     \label{fig:conexion_alimentacion}
 \end{figure}
 
-\vspace{-0.8cm}
+\vspace{0.25cm}
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Interconexión de componentes}
@@ -124,17 +163,17 @@ alimentación.
 
 El microcontrolador STM32F446RE se comunica con los dos módulos HX711 mediante
 señales digitales GPIO (\textit{General Purpose Input/Output}). Cada módulo HX711 emplea una interfaz de dos cables: uno
-de reloj (CLK) y uno de datos (DATA), conectados a pines GPIO del
-microcontrolador configurados como salida y entrada respectivamente. El módulo
-DS3231 se conecta al microcontrolador a través del bus I$^2$C, por medio de las líneas SCL y SDA del periférico I2C1, configurado a 400~kHz. El módulo ESP32 se
-conecta mediante el periférico UART4, configurado a 115~200 baudios con formato
-8N1. El pulsador de dispensado manual se conecta a un pin configurado como
-entrada con interrupción externa (EXTI), con un tiempo de antirrebote de 200~ms
-implementado por software. El LED de estado se conecta a una salida GPIO de
-propósito general. La figura~\ref{fig:conexion_perifericos} muestra el esquema de
-estas conexiones.
+de reloj (CLK) y uno de datos (DATA), conectados a pines GPIO del microcontrolador configurados como salida y entrada respectivamente. 
 
-\vspace{-0.4cm}
+El módulo DS3231 se conecta al microcontrolador a través del bus I$^2$C, por medio de las líneas SCL y SDA del periférico I2C1, configurado a 400~kHz. 
+
+El módulo ESP32 se conecta mediante el periférico UART4, configurado a 115~200 baudios con formato 8N1. 
+
+El pulsador de dispensado manual se conecta a un pin configurado como entrada con interrupción externa (EXTI), con un tiempo de antirrebote de 200~ms
+implementado por software. 
+
+El LED de estado se conecta a una salida GPIO de propósito general. La figura~\ref{fig:conexion_perifericos} muestra el esquema de
+estas conexiones.
 
 \begin{figure}[H]
     \centering
@@ -143,11 +182,9 @@ estas conexiones.
     \label{fig:conexion_perifericos}
 \end{figure}
 
-\vspace{-0.5cm}
 
-El motor paso a paso NEMA~17 se controla a través del driver A4988, que recibe tres señales digitales provenientes del microcontrolador. La señal \texttt{STEP}, generada por el canal~3 del temporizador \texttt{TIM2} en modo PWM sobre el pin \texttt{PB10}, determina la velocidad y el número de pasos ejecutados por el motor. La señal \texttt{DIR} define el sentido de giro, mientras que la señal \texttt{ENABLE} habilita o deshabilita el driver. Las señales \texttt{DIR} y \texttt{ENABLE} se manejan como salidas GPIO simples. La figura~\ref{fig:conexion_motor} ilustra el esquema de conexión entre el microcontrolador, el driver y el motor.
+El motor paso a paso NEMA~17 se controla a través del driver A4988, que recibe tres señales digitales provenientes del microcontrolador. La señal \texttt{STEP}, generada por el canal~3 del temporizador \texttt{TIM2} en modo PWM~\cite{rodriguez2014pwm} sobre el pin \texttt{PB10}, que determina la velocidad y el número de pasos ejecutados por el motor. La señal \texttt{DIR} define el sentido de giro, mientras que la señal \texttt{ENABLE} habilita o deshabilita el driver. Las señales \texttt{DIR} y \texttt{ENABLE} se manejan como salidas GPIO simples. La figura~\ref{fig:conexion_motor} ilustra el esquema de conexión entre el microcontrolador, el driver y el motor.
 
-\vspace{-0.4cm}
 
 \begin{figure}[H]
     \centering
@@ -155,6 +192,35 @@ El motor paso a paso NEMA~17 se controla a través del driver A4988, que recibe 
     \caption{Interconexión entre el microcontrolador, el driver A4988 y el motor NEMA~17.}
     \label{fig:conexion_motor}
 \end{figure}
+
+La tabla~\ref{tab:asignacion_pines} resume la asignación de pines del microcontrolador STM32F446RE a cada uno de los periféricos descritos en esta sección.
+
+\begin{table}[H]
+\centering
+\caption{Asignación de pines del microcontrolador STM32F446RE.}
+\label{tab:asignacion_pines}
+\begin{tabular}{llll}
+\toprule
+\textbf{Periférico} & \textbf{Pin} & \textbf{Función} & \textbf{Configuración} \\
+\midrule
+HX711 (tanque) — DOUT & PC0  & Lectura de dato      & GPIO entrada \\
+HX711 (tanque) — SCK  & PC1  & Reloj de muestreo    & GPIO salida \\
+HX711 (plato) — DOUT  & PC2  & Lectura de dato      & GPIO entrada \\
+HX711 (plato) — SCK   & PC3  & Reloj de muestreo    & GPIO salida \\
+DS3231 — SCL          & PB8  & Reloj I\textsuperscript{2}C   & I\textsuperscript{2}C1, 400~kHz \\
+DS3231 — SDA          & PB9  & Datos I\textsuperscript{2}C   & I\textsuperscript{2}C1, 400~kHz \\
+ESP32 — TX            & PA0  & Transmisión UART     & UART4, 115\,200 baudios, 8N1 \\
+ESP32 — RX            & PA1  & Recepción UART       & UART4, 115\,200 baudios, 8N1 \\
+Pulsador manual       & PC13 & Dispensado manual    & EXTI, antirrebote 200~ms \\
+LED de estado         & PA5  & Indicación de estado & GPIO salida \\
+Motor — STEP          & PB10 & Señal de pasos       & TIM2 canal~3, PWM \\
+Motor — DIR           & PA6  & Sentido de giro      & GPIO salida \\
+Motor — ENABLE        & PA7  & Habilitación del driver & GPIO salida (activo en bajo) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.2cm}
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Análisis de potencia}
@@ -165,7 +231,7 @@ corriente suficiente para todos los componentes del sistema de forma simultánea
 La tabla~\ref{tab:consumo} resume el consumo máximo de cada componente según las
 hojas de datos de sus fabricantes.
 
-\vspace{-0.4cm}
+\vspace{0.2cm}
 
 \begin{table}[H]
 \centering
@@ -186,6 +252,8 @@ LED de estado     & 5  & 20   \\
 \end{tabular}
 \end{table}
 
+\vspace{0.2cm}
+
 Del análisis de la tabla se concluye que el componente de mayor consumo es
 el motor paso a paso NEMA~17, que opera a 12~V y puede demandar hasta 1,7~A
 por fase en condiciones de máxima carga. El resto de los componentes opera a
@@ -194,15 +262,11 @@ elección de una fuente de alimentación de 12~V y el módulo regulador LM2596S,
 cuya corriente máxima de salida de 3~A provee el margen necesario para una
 operación confiable del sistema.
 
-\vspace{-0.2cm}
-
 %-----------------------------------------------------------------------------
 \section{Diseño del firmware}
 %-----------------------------------------------------------------------------
 
 En esta sección se describe la organización del firmware desarrollado para el microcontrolador STM32F446RE y la lógica de control que gobierna el comportamiento del sistema.
-
-\vspace{-0.2cm}
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Organización del firmware}
@@ -213,16 +277,18 @@ forma independiente, con el propósito de que su desarrollo fuera autónomo y pa
 facilitar su integración. La figura~\ref{fig:diagrama_software} muestra el diagrama
 en bloques que representa los subsistemas que conforman el firmware.
 
+\vspace{0.4cm}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.68\textwidth]{./Figures/diagrama_software.png}
+    \includegraphics[width=0.8\textwidth]{./Figures/diagrama_software.png}
     \caption{Diagrama en bloques de los subsistemas de software.}
     \label{fig:diagrama_software}
 \end{figure}
 
 El módulo central del sistema es el orquestador, cuya función es inicializar todos
 los periféricos necesarios y luego gestionar la lógica de control a través de una
-máquina de estados. Para ello se utilizó FreeRTOS~\cite{freertos_ref}, con dos
+máquina de estados. Para ello se utilizó FreeRTOS, con dos
 tareas principales: una encargada del control del dispensado y otra dedicada a la
 comunicación con el usuario.
 
@@ -253,10 +319,53 @@ diagrama de estados del sistema.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{./Figures/diagrama_estados.png}
+    \includegraphics[width=0.8\textwidth]{./Figures/diagrama_estados.png}
     \caption{Diagrama de estados del dispensador.}
     \label{fig:estados}
 \end{figure}
+
+La figura~\ref{fig:secuencia_dispensado} presenta el diagrama de secuencia del
+ciclo de dispensado, que puede iniciarse por dos vías: mediante el comando
+\texttt{dispense} recibido desde la aplicación o de forma autónoma. En el primer
+caso, \texttt{CommTask} traduce el comando en el evento \texttt{EVT\_BUTTON} y lo
+publica en la cola de eventos. En el segundo, \texttt{SMTask} detecta durante el
+\textit{polling} periódico de \texttt{ST\_IDLE} que la hora provista por el DS3231
+coincide con un horario programado y genera internamente el evento
+\texttt{EVT\_SCHEDULED}.
+
+En ambos casos, el sistema transita a \texttt{ST\_DISPENSING}, donde se
+registra el evento en el log y se invoca \texttt{Motor\_Dispense()}. Esta
+función configura el temporizador \texttt{TIM2} para generar la secuencia de
+pulsos \texttt{STEP} de forma autónoma por hardware; el conteo de pasos se
+realiza en la rutina de interrupción del temporizador, sin bloquear a
+\texttt{SMTask}. Mientras el motor opera, \texttt{SMTask} permanece en un
+ciclo de espera de 100~ms consultando \texttt{Motor\_IsDone()}. Al completarse
+la secuencia de pasos, el sistema retorna a \texttt{ST\_IDLE} y notifica el
+evento a la aplicación mediante \texttt{Comm\_SendFeedingDone()}, que incluye
+la cantidad dispensada, el origen del evento (manual o programado) y la hora
+correspondiente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{./Figures/secuencia_ciclo_dispensado.png}
+    \caption{Diagrama de secuencia del ciclo de dispensado.}
+    \label{fig:secuencia_dispensado}
+\end{figure}
+
+El estado \texttt{ST\_ERROR} se alcanza exclusivamente si la inicialización
+del módulo DS3231 falla de forma irrecuperable. Durante \texttt{ST\_INIT}, el
+sistema intenta inicializar y configurar la hora del RTC hasta
+\texttt{BOOT\_MAX\_TRIES} veces (tres intentos), con una espera de 200~ms
+entre cada uno. Si el RTC no responde tras agotar los reintentos, o si la
+configuración inicial de fecha y hora falla, el sistema transita a
+\texttt{ST\_ERROR}.
+
+En este estado, el LED de estado permanece encendido de forma continua como
+indicación visual de la falla. El sistema permanece en espera durante 10~s y luego ejecuta
+\texttt{NVIC\_SystemReset()} para reiniciar por completo el microcontrolador.
+Al reiniciar el microcontrolador, se ejecuta nuevamente la secuencia completa de
+inicialización, lo que permite recuperarse de fallas transitorias de comunicación
+I\textsuperscript{2}C con el RTC sin intervención manual.
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo de periféricos}
@@ -266,18 +375,22 @@ El módulo de periféricos agrupa los componentes de actuación y señalización
 sistema: el motor paso a paso NEMA~17, el pulsador de dispensado manual y el
 LED de estado.
 
-El control del motor se implementó mediante el driver A4988. La señal
-\texttt{STEP} se genera por el canal~3 del temporizador \texttt{TIM2} en modo
-PWM, y su frecuencia determina la velocidad de rotación. Las señales \texttt{DIR}
-y \texttt{ENABLE}, que controlan el sentido de giro y la habilitación del driver
-respectivamente, se implementaron como salidas GPIO de propósito general. La
-cantidad de pasos ejecutados en cada ciclo de dispensado determina la porción de
-alimento entregada.
+El control del motor se implementó mediante el driver A4988. El giro del eje
+del motor se logra mediante una secuencia de pulsos generados sobre la señal
+\texttt{STEP}, donde cada pulso corresponde a un paso del motor. Esta señal se
+genera por el canal~3 del temporizador \texttt{TIM2}, configurado en modo PWM
+para producir el tren de pulsos de forma autónoma por hardware. La frecuencia
+de dicho tren determina la velocidad de rotación del motor, mientras que la
+cantidad de pulsos define el ángulo total recorrido. Las señales \texttt{DIR}
+y \texttt{ENABLE} controlan el sentido de giro y la habilitación del driver
+respectivamente. Ambas se implementaron como salidas GPIO de propósito general.
+La cantidad de pasos ejecutados en cada ciclo de dispensado determina la porción
+de alimento entregada.
 
-El pulsador de dispensado manual se conectó a un pin configurado con interrupción
-externa (\texttt{EXTI}). La rutina de servicio de interrupción implementó un
-mecanismo de antirrebote de 200~ms por software y publicó un evento en la cola
-de despacho del sistema operativo para notificar a la tarea de control del
+El pulsador de dispensado manual se conecta a un pin configurado con interrupción
+externa (\texttt{EXTI}). La rutina de servicio de interrupción implementa un
+mecanismo de antirrebote de 200~ms por software y publica un evento en la cola
+de eventos de FreeRTOS para notificar a la tarea de control del
 dispensado.
 
 El LED de estado refleja el estado activo de la máquina de estados: permanece
@@ -292,11 +405,17 @@ El módulo de pesaje gestiona la inicialización y la lectura periódica de los 
 módulos HX711 conectados a las celdas de carga del tanque y del plato.
 
 Durante el estado \texttt{ST\_INIT}, el módulo ejecuta una tara automática que
-establece el valor de referencia de reposo de cada celda. A partir de ese punto,
-las lecturas de peso se obtienen a partir de un factor de calibración aplicado sobre los
-valores digitales de 24~bits provistos por el HX711, y se expresan en gramos.
-Para reducir el ruido en la señal, cada lectura resulta del promedio
-de 8~muestras consecutivas.
+establece el valor de referencia de reposo de cada celda. A partir de ese
+punto, las lecturas de peso se obtienen mediante la aplicación de un factor de
+calibración sobre la diferencia entre el valor digital de 24~bits provisto por el
+HX711 y dicho \textit{offset} de tara, y el resultado se expresa en gramos.
+
+El factor de calibración se determinó experimentalmente. Se pesó un objeto de
+referencia en una balanza doméstica para obtener su masa real y luego se contrastó
+este valor con la lectura cruda entregada por el HX711 para el mismo objeto, lo que
+permitió calcular la relación entre ambas magnitudes. Para reducir el ruido en la
+señal, cada lectura resulta del promedio de 8~muestras consecutivas, obtenidas en
+una misma operación de bloque previa al cálculo del valor en gramos.
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo de gestión de horarios}
@@ -308,9 +427,10 @@ de la tarea de control, durante el estado \texttt{ST\_IDLE}, se consultan las
 horas y los minutos del reloj de tiempo real y se verifica si alguno de los
 horarios activos coincide con el instante actual. Cuando se detecta una
 coincidencia, se genera el evento \texttt{EVT\_SCHEDULED\_FEED}, que desencadena
-la transición al estado \texttt{ST\_DISPENSING}. Un mecanismo de inhibición evita
-que el mismo horario dispare múltiples eventos dentro de la misma ventana temporal
-de un minuto.
+la transición al estado \texttt{ST\_DISPENSING}. Como la comparación se realiza a nivel de hora y minuto, la coincidencia se
+mantiene durante todo ese minuto. Para evitar que en un mismo horario se disparen
+varios eventos, un mecanismo de inhibición recuerda el último horario activado y
+no vuelve a dispararlo hasta el minuto siguiente.
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Módulo de gestión de almacenamiento}
@@ -353,7 +473,7 @@ sencilla con la aplicación de escritorio. La figura~\ref{fig:arquitectura_comm}
 ilustra la arquitectura de comunicación del sistema junto con los mensajes
 intercambiados.
 
-\vspace{-0.2cm}
+\vspace{0.2cm}
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{./Figures/dispensador_arquitectura.png}
@@ -361,7 +481,7 @@ intercambiados.
     \label{fig:arquitectura_comm}
 \end{figure}
 
-\vspace{-0.4cm}
+\vspace{0.2cm}
 
 El sistema transmite dos tipos de mensajes hacia la aplicación. El primero es un mensaje de telemetría transmitido cada 1~segundo que incluye el peso del tanque de almacenamiento, el peso del plato y la fecha y hora provistas por el módulo DS3231. Al completarse un ciclo de dispensado, el sistema emite un mensaje de evento con la cantidad dispensada, la etiqueta del tipo de dispensado y la hora en que ocurrió. Entre los comandos
 entrantes, la aplicación puede solicitar un dispensado manual mediante
@@ -382,23 +502,21 @@ ejecutar un dispensado manual o una tara de las celdas de carga.
 
 La aplicación se organiza en cinco pantallas principales accesibles desde una
 barra de navegación inferior: Inicio, Horarios, Historial, Vincular y Ajustes.
-La figura~\ref{fig:sitemap_app} presenta el diagrama de navegación de la
-aplicación con el contenido de cada pantalla.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\textwidth]{./Figures/sitemap_app.png}
-    \caption{Diagrama de navegación de la aplicación de escritorio.}
-    \label{fig:sitemap_app}
-\end{figure}
-
-\vspace{-0.4cm}
 
 La pantalla de inicio muestra el dashboard principal con los valores de
 peso actualizados en tiempo real y el estado de la última alimentación registrada.
 La pantalla de horarios permite consultar y gestionar los horarios programados. La pantalla de historial presenta el registro completo de eventos de dispensado con fecha, hora y cantidad. La pantalla de vinculación facilita el proceso de conexión Bluetooth con el dispositivo. Finalmente, la pantalla de
 ajustes permite configurar el perfil de la mascota y los parámetros generales de la
-aplicación.
+aplicación. La figura~\ref{fig:sitemap_app} presenta el diagrama de navegación de la
+aplicación con el contenido de cada pantalla.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{./Figures/sitemap_app.png}
+    \caption{Diagrama de navegación de la aplicación de escritorio.}
+    \label{fig:sitemap_app}
+\end{figure}
 
 %-----------------------------------------------------------------------------
 \section{Integración hardware-software}
@@ -411,15 +529,59 @@ FreeRTOS y los componentes físicos del sistema.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.90\textwidth]{./Figures/diagrama_freertos.png}
+    \includegraphics[width=1\textwidth]{./Figures/diagrama_freertos.png}
     \caption{Diagrama de integración hardware-software del sistema.}
     \label{fig:integracion_hw_sw}
 \end{figure}
 
-El firmware se estructuró en torno a dos tareas concurrentes de FreeRTOS: la tarea de control del dispensado y la tarea de comunicación. La primera gestiona directamente los periféricos de hardware: lee el peso de las celdas de carga a través de los módulos HX711, consulta la hora al módulo DS3231, controla el motor NEMA~17 y atiende las interrupciones del pulsador. La segunda se encarga exclusivamente del intercambio de mensajes con la aplicación de escritorio a través del módulo ESP32 por UART.
+El firmware se estructuró en torno a dos tareas concurrentes de FreeRTOS: la
+tarea de control del dispensado (\texttt{SMTask}) y la tarea de comunicación
+(\texttt{CommTask}). La primera gestiona directamente los periféricos de
+hardware: lee el peso de las celdas de carga a través de los módulos HX711,
+consulta la hora al módulo DS3231, controla el motor NEMA~17 y atiende las
+interrupciones del pulsador. La segunda se encarga exclusivamente del
+intercambio de mensajes con la aplicación de escritorio a través del módulo
+ESP32 por UART.
 
-La sincronización entre ambas tareas se realiza mediante una cola de mensajes
-de FreeRTOS (\texttt{xQueueHandle}). Cuando la tarea de comunicación recibe un
-comando proveniente de la aplicación, lo publica en la cola. La tarea de
-control del dispensado consume estos eventos en cada iteración de la máquina de
-estados y ejecuta la acción correspondiente. Al completarse un ciclo de dispensado, la tarea de control publica el resultado en la cola para que la tarea de comunicación lo notifique a la aplicación. Este mecanismo garantiza que el procesamiento de comandos externos no interfiera con el ciclo de control del hardware, y ambas tareas operen de forma desacoplada.
+La sincronización entre ambas tareas se realiza mediante una cola de eventos
+de FreeRTOS (\texttt{s\_event\_queue}), de uso unidireccional desde
+\texttt{CommTask} hacia \texttt{SMTask}. Cuando \texttt{CommTask} recibe el
+comando \texttt{dispense} desde la aplicación, publica en esta cola el evento
+\texttt{EVT\_BUTTON}, que \texttt{SMTask} consume durante el estado
+\texttt{ST\_IDLE} para disparar la transición a \texttt{ST\_DISPENSING}. Los comandos \texttt{tare} y \texttt{set\_schedules}, en cambio, son atendidos
+directamente por \texttt{CommTask} sin involucrar a \texttt{SMTask}. El comando
+\texttt{set\_schedules} actualiza una estructura interna de horarios protegida por
+un mutex~\cite{freertos_mutex} dedicado, mientras que el comando \texttt{tare} se
+describe en detalle más adelante en esta sección.
+
+La notificación de eventos hacia la aplicación de escritorio, como la
+telemetría periódica o la confirmación de un ciclo de dispensado completo, no
+se realiza mediante la cola compartida, sino a través de llamadas directas a
+las funciones de envío del módulo de comunicación. Este esquema mantiene
+desacopladas ambas tareas: \texttt{SMTask} opera con un ciclo de polling de
+1~segundo sobre la cola de eventos, mientras que \texttt{CommTask} permanece
+bloqueada esperando datos por UART y reanuda su ejecución al producirse la interrupción del periférico.
+
+Un tercer flujo de integración, distinto del ciclo de dispensado descripto en
+la sección~\ref{sec:modulo_orquestador}, es el de la tara remota de las celdas de
+carga. La figura~\ref{fig:secuencia_tara} presenta el diagrama de secuencia de esta
+operación. Cuando \texttt{CommTask} recibe el comando \texttt{tare} desde la
+aplicación, no publica ningún evento en la cola compartida con \texttt{SMTask}. En
+cambio, accede directamente al módulo HX711 mediante el mutex que protege dicho
+recurso e invoca \texttt{HX711\_TareAll()} para restablecer el offset de
+referencia de ambas celdas. A continuación, realiza una lectura de verificación
+sobre ambos canales para confirmar que el resultado quede próximo a cero, y
+notifica a la aplicación mediante \texttt{Comm\_SendTareDone()}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{./Figures/secuencia_tara.png}
+    \caption{Diagrama de secuencia de la operación de tara remota.}
+    \label{fig:secuencia_tara}
+\end{figure}
+
+La distinción entre ambos flujos responde a la naturaleza de cada operación. El
+dispensado modifica el estado de la máquina de estados y requiere activar el motor,
+por lo que exige coordinación entre las dos tareas a través de la cola de eventos.
+La tara, en cambio, es una operación de configuración que \texttt{CommTask}
+resuelve por sí sola, sin afectar el flujo normal de \texttt{ST\_IDLE}.
